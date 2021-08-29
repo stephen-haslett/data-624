@@ -1,0 +1,65 @@
+---
+title: "Data 624 Homework 1"
+subtitle: "Week 2 Time Series"
+author: "Stephen Haslett"
+date: "8/29/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+library(fpp3)
+```
+
+
+### Exercise 2.1
+**Use the help function to explore what the series _gafa_stock_, _PBS_, _vic_elec_ and _pelt_ represent**.
+
+**_gafa_stock Series Description_**
+```{r exercise2.1Gafa}
+help(gafa_stock)
+```
+_Historical stock prices from 2014-2018 for Google, Amazon, Facebook and Apple. All prices are in $USD_.
+
+\ 
+
+**_PBS Series Description_**
+```{r exercise2.1PBS}
+help(PBS)
+```
+_PBS is a monthly tsibble with two values_:
+
+_Scripts: Total number of scripts_
+
+_Cost:	Cost of the scripts in $AUD_
+
+\ 
+
+**_vic_elec Series Description_**
+```{r exercise2.1Vic}
+help(vic_elec)
+```
+_vic_elec is a half\-hourly tsibble with three values_:
+
+_Demand:	Total electricity demand in MW_.
+
+_Temperature:	Temperature of Melbourne (BOM site 086071)_.
+
+_Holiday:	Indicator for if that day is a public holiday_.
+
+\ 
+
+**_pelt Series Description_**
+```{r exercise2.1Pelt}
+help(pelt)
+```
+
+_Hudson Bay Company trading records for Snowshoe Hare and Canadian Lynx furs from 1845 to 1935. This data contains trade records for all areas of the company_.
+
+
+
+
+

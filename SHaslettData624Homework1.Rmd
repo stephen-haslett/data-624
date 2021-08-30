@@ -140,4 +140,48 @@ mytimeseries %>%
 ```
 
 **Answer**:
-When _facet_grid()_ is removed, The results are displayed in one graph rather than 3 seperate graphs. 
+When _facet_grid()_ is removed, The results are displayed in one graph rather than 3 seperate graphs.
+
+\ 
+\ 
+
+### Exercise 2.4
+**The USgas package contains data on the demand for natural gas in the US**.
+
+**2.4 A. _Install the USgas package_**.
+
+```{r exercise2.4A, eval=TRUE, message=FALSE, warning=FALSE}
+library(USgas)
+```
+
+
+**2.4 B. _Create a tsibble from us_total with year as the index and state as the key_**.
+
+```{r exercise2.4B, eval=TRUE, message=FALSE, warning=FALSE}
+gas_tsibble <- us_total %>% as_tsibble(key = state, index = year)
+gas_tsibble
+```
+
+**2.4 C. _Plot the annual natural gas consumption by state for the New England area (comprising the states of Maine, Vermont, New Hampshire, Massachusetts, Connecticut and Rhode Island)_**.
+
+```{r exercise2.4C, eval=TRUE, message=FALSE, warning=FALSE}
+# Disable scientific numbers for readability purposes.
+options(scipen = 999)
+
+# Select New England states from the dataset.
+annual_gas_consumption <- gas_tsibble %>%
+  filter(state == c("Maine", "Vermont",
+                    "New Hampshire", "Massachusetts",
+                    "Connecticut", "Rhode Island"))
+
+# Create the plot.
+autoplot(annual_gas_consumption, y) +
+  labs(title = "New England Annual Natural Gas Consumption by State",
+       y = "Gas Consumption (Million Cubic Feet)",
+       x = "Year")
+  
+```
+
+
+
+

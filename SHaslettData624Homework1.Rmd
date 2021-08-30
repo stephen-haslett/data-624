@@ -182,6 +182,26 @@ autoplot(annual_gas_consumption, y) +
   
 ```
 
+\ 
+\ 
 
+### Exercise 2.5
+
+**2.5 A. _Download tourism.xlsx from the book website and read it into R using readxl::read_excel()_**.
+
+```{r exercise2.5A, eval=TRUE, message=FALSE, warning=FALSE}
+tourism <- readxl::read_excel("tourism.xlsx")
+```
+
+
+**2.5 B. _Create a tsibble which is identical to the tourism tsibble from the tsibble package._**.
+
+```{r exercise2.5B, eval=TRUE, message=FALSE, warning=FALSE}
+tourism_tsibble <- tourism %>%
+  mutate(Quarter = yearquarter(Quarter) ) %>%
+  as_tsibble(index = Quarter, key = c(Region, State, Purpose))
+
+tourism_tsibble
+```
 
 

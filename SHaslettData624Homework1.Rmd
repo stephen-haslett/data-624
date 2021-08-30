@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 ```{r, eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
 library(fpp3)
+library(DT)
 ```
 
 
@@ -19,29 +20,31 @@ library(fpp3)
 **Use the help function to explore what the series _gafa_stock_, _PBS_, _vic_elec_ and _pelt_ represent**.
 
 **_gafa_stock Series Description_**
-```{r exercise2.1Gafa}
+```{r exercise2.1Gafa, eval=TRUE, message=FALSE, warning=FALSE}
 help(gafa_stock)
 ```
+
 _Historical stock prices from 2014-2018 for Google, Amazon, Facebook and Apple. All prices are in $USD_.
 
-\ 
 
 **_PBS Series Description_**
-```{r exercise2.1PBS}
+```{r exercise2.1PBS, eval=TRUE, message=FALSE, warning=FALSE}
 help(PBS)
 ```
+
 _PBS is a monthly tsibble with two values_:
 
 _Scripts: Total number of scripts_
 
 _Cost:	Cost of the scripts in $AUD_
 
-\ 
 
 **_vic_elec Series Description_**
-```{r exercise2.1Vic}
+
+```{r exercise2.1Vic, eval=TRUE, message=FALSE, warning=FALSE}
 help(vic_elec)
 ```
+
 _vic_elec is a half\-hourly tsibble with three values_:
 
 _Demand:	Total electricity demand in MW_.
@@ -50,16 +53,91 @@ _Temperature:	Temperature of Melbourne (BOM site 086071)_.
 
 _Holiday:	Indicator for if that day is a public holiday_.
 
-\ 
 
 **_pelt Series Description_**
-```{r exercise2.1Pelt}
+
+```{r exercise2.1Pelt, eval=TRUE, message=FALSE, warning=FALSE}
 help(pelt)
 ```
 
 _Hudson Bay Company trading records for Snowshoe Hare and Canadian Lynx furs from 1845 to 1935. This data contains trade records for all areas of the company_.
 
+\ 
+
+**2.1 A. _Use autoplot() to plot some of the series in these data sets_**.
+
+**_pelt Series_**
+
+```{r exercise2.1AGafa, eval=TRUE, message=FALSE, warning=FALSE}
+autoplot(pelt)
+```
+
+**_vic_elec Series_**
+
+```{r exercise2.1AVicElec, eval=TRUE, message=FALSE, warning=FALSE}
+vic_elec %>% autoplot(Demand)
+```
 
 
+**2.1 B. _What is the time interval of each series?_**.
+
+* _pelt \- 1 Year_
+
+* _vic_elec - 30 Minutes_ 
+
+\  
+\ 
+
+### Exercise 2.2
+**Use filter() to find what days corresponded to the peak closing price for each of the four stocks in gafa_stock**.
+
+```{r exercise2.2Filter, eval=TRUE, message=FALSE, warning=FALSE}
+gafa_stock %>%
+  group_by(Symbol) %>%
+  filter(Close == max(Close))
+```
+
+\  
+\ 
+
+### Exercise 2.3
+**Download the file tute1.csv from the book website, open it in Excel (or some other spreadsheet application), and review its contents. You should find four columns of information. Columns B through D each contain a quarterly series, labelled Sales, AdBudget and GDP. Sales contains the quarterly sales for a small company over the period 1981-2005. AdBudget is the advertising budget and GDP is the gross domestic product. All series have been adjusted for inflation**.
+
+**2.3 A. _You can read the data into R with the following script_**:
+
+```{r exercise2.3A, eval=TRUE, message=FALSE, warning=FALSE}
+tute1 <- readr::read_csv("tute1.csv")
+# For readability purposes, use Data Tables to display the data rather than View().
+datatable(tute1)
+```
+
+**2.3 B. _Convert the data to time series_**
+
+```{r exercise2.3B, eval=TRUE, message=FALSE, warning=FALSE}
+mytimeseries <- tute1 %>%
+  mutate(Quarter = yearmonth(Quarter)) %>%
+  as_tsibble(index = Quarter)
+```
 
 
+**2.3 C. _Construct time series plots of each of the three series_**
+
+```{r exercise2.3C, eval=TRUE, message=FALSE, warning=FALSE}
+mytimeseries %>%
+  pivot_longer(-Quarter) %>%
+  ggplot(aes(x = Quarter, y = value, colour = name)) +
+  geom_line() +
+  facet_grid(name ~ ., scales = "free_y")
+```
+
+**Check what happens when you don’t include facet_grid()**.
+
+```{r exercise2.3FacetGrid, eval=TRUE, message=FALSE, warning=FALSE}
+mytimeseries %>%
+  pivot_longer(-Quarter) %>%
+  ggplot(aes(x = Quarter, y = value, colour = name)) +
+  geom_line()
+```
+
+**Answer**:
+When _facet_grid()_ is removed, The results are displayed in one graph rather than 3 seperate graphs. 

@@ -47,7 +47,7 @@ help(vic_elec)
 
 _vic_elec is a half\-hourly tsibble with three values_:
 
-_Demand:	Total electricity demand in MW_.
+_Demand: Total electricity demand in MW_.
 
 _Temperature:	Temperature of Melbourne (BOM site 086071)_.
 
@@ -194,7 +194,7 @@ tourism <- readxl::read_excel("tourism.xlsx")
 ```
 
 
-**2.5 B. _Create a tsibble which is identical to the tourism tsibble from the tsibble package._**.
+**2.5 B. _Create a tsibble which is identical to the tourism tsibble from the tsibble package_**.
 
 ```{r exercise2.5B, eval=TRUE, message=FALSE, warning=FALSE}
 tourism_tsibble <- tourism %>%
@@ -202,6 +202,86 @@ tourism_tsibble <- tourism %>%
   as_tsibble(index = Quarter, key = c(Region, State, Purpose))
 
 tourism_tsibble
+```
+
+
+**2.5 C. _Find what combination of Region and Purpose had the maximum number of overnight trips on average_**.
+
+```{r exercise2.5C, eval=TRUE, message=FALSE, warning=FALSE}
+tourism_tsibble %>% 
+  group_by(Region, Purpose) %>%
+  summarise(Trips = mean(Trips)) %>%
+  ungroup() %>%
+  filter(Trips == max(Trips))
+```
+
+
+**2.5 D. _Create a new tsibble which combines the Purposes and Regions, and just has total trips by State_**.
+
+```{r exercise2.5D, eval=TRUE, message=FALSE, warning=FALSE}
+total_trips_tsibble <- tourism_tsibble %>%
+  group_by(State) %>%
+  summarise(Trips = round(sum(Trips), 2)) %>%
+  ungroup()
+
+total_trips_tsibble
+```
+
+\ 
+\ 
+
+### Exercise 2.8
+
+**Monthly Australian retail data is provided in _aus_retail_. Select one of the time series as follows (but choose your own seed value)**:
+
+```{r exercise2.8}
+set.seed(777888)
+myseries <- aus_retail %>%
+  filter(`Series ID` == sample(aus_retail$`Series ID`,1))
+```
+
+**Explore your chosen retail time series using the following functions**:
+
+_autoplot(), gg_season(), gg_subseries(), gg_lag()_,
+
+_ACF() %>% autoplot()_
+
+**Can you spot any seasonality, cyclicity and trend? What do you learn about the series**?
+
+**Using autoplot()**
+
+```{r exercise2.8autoPlot,  eval=TRUE, message=FALSE, warning=FALSE}
+myseries %>% autoplot(Turnover)
+
+```
+
+
+**Using gg_season()**
+
+```{r exercise2.8ggSeason,  eval=TRUE, message=FALSE, warning=FALSE}
+myseries %>% gg_season(Turnover)
+```
+
+
+**Using gg_subseries()**
+
+```{r exercise2.8ggSubseries,  eval=TRUE, message=FALSE, warning=FALSE}
+myseries %>% gg_subseries(Turnover)
+```
+
+
+**Using gg_lag()**
+
+```{r exercise2.8ggLag,  eval=TRUE, message=FALSE, warning=FALSE}
+myseries %>% gg_lag(Turnover)
+```
+
+
+**Using ACF() %>% autoplot()**
+
+```{r exercise2.8ACF,  eval=TRUE, message=FALSE, warning=FALSE}
+myseries %>% ACF(Turnover) %>%
+ autoplot()
 ```
 
 

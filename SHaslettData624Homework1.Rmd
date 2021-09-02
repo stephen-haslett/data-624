@@ -235,7 +235,7 @@ total_trips_tsibble
 **Monthly Australian retail data is provided in _aus_retail_. Select one of the time series as follows (but choose your own seed value)**:
 
 ```{r exercise2.8}
-set.seed(777888)
+set.seed(7777777)
 myseries <- aus_retail %>%
   filter(`Series ID` == sample(aus_retail$`Series ID`,1))
 ```
@@ -246,13 +246,11 @@ _autoplot(), gg_season(), gg_subseries(), gg_lag()_,
 
 _ACF() %>% autoplot()_
 
-**Can you spot any seasonality, cyclicity and trend? What do you learn about the series**?
 
 **Using autoplot()**
 
 ```{r exercise2.8autoPlot,  eval=TRUE, message=FALSE, warning=FALSE}
 myseries %>% autoplot(Turnover)
-
 ```
 
 
@@ -285,3 +283,12 @@ myseries %>% ACF(Turnover) %>%
 ```
 
 
+**Can you spot any seasonality, cyclicity and trend? What do you learn about the series**?
+
+- In the graph that is constructed using the _autoplot()_ function, a seasonal pattern can be identified. Each year displays a peak turnover which would suggest that turnover is highest at a specifc time of year.
+
+- A trend can also be observed in the _autoplot()_ graph. There is a steady year to year upward trend in turnover until around 2012.
+
+- The gg_lag() graph further consolidates an upward trend in turnover.
+
+\ 

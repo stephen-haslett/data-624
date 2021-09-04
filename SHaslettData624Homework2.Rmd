@@ -22,9 +22,9 @@ library(DT)
 _Looking at the below plot, we can say that there is an upward trend in GDP over time_.
 
 
-```{r, exercise3.1A, eval=TRUE, message=FALSE, warning=FALSE}
+```{r fig.width=8, exercise3.1A, eval=TRUE, message=FALSE, warning=FALSE}
 tsibble(global_economy, key = Code, index = Year) %>%
-  autoplot(GDP / Population, show.legend = FALSE) +
+  autoplot(GDP/Population, show.legend = FALSE) +
   labs(title = 'GDP Per Capita For All Countries',
        y = 'US Dollars')
 ```
@@ -53,33 +53,71 @@ autoplot(country_with_highest_gdp) +
 ### Exercise 3.2
 **For each of the following series, make a graph of the data. If transforming seems appropriate, do so and describe the effect**.
 
-**_United States GDP from global_economy_**
+**_A. United States GDP from global_economy_**
+
 ```{r exercise3.2US-GDP, eval=TRUE, message=FALSE, warning=FALSE}
+tsibble(global_economy, key = Code, index = Year) %>%
+  filter(Country == 'United States') %>%
+  autoplot(GDP/Population) +
+  labs(title = 'United States GDP', y = 'US Dollars') +
+  geom_line(col = '#006400') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
 
 ```
 
 
-**_Slaughter of Victorian “Bulls, bullocks and steers” in aus_livestock_**
-```{r exercise3.2AusLivestock, eval=TRUE, message=FALSE, warning=FALSE}
-
+**_B. Slaughter of Victorian “Bulls, bullocks and steers” in aus_livestock_**
+```{r fig.width = 14, exercise3.2AusLivestock, eval=TRUE, message=FALSE, warning=FALSE}
+aus_livestock %>%
+  filter(Animal == 'Bulls, bullocks and steers', State == 'Victoria') %>%
+  autoplot(Count) +
+  labs(title = 'Slaughter of Victorian “Bulls, Bullocks and Steers"', y = 'Count') +
+  geom_line(col = '#DC143C') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
 ```
 
 
-**_Victorian Electricity Demand from vic_elec_**
-```{r exercise3.2ElectricityDemand, eval=TRUE, message=FALSE, warning=FALSE}
-
+**_C. Victorian Electricity Demand from vic_elec_**
+```{r fig.width=10, exercise3.2ElectricityDemand, eval=TRUE, message=FALSE, warning=FALSE}
+vic_elec %>%
+  autoplot(Demand) +
+  labs(title = 'Victorian Electricity Demand', y = 'Demand') +
+  geom_line(col = '#9932CC') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
 ```
 
 
-**_Gas production from aus_production_**
-```{r exercise3.2GasProduction, eval=TRUE, message=FALSE, warning=FALSE}
-
+**_D. Gas production from aus_production_**
+```{r fig.width=10, exercise3.2GasProduction, eval=TRUE, message=FALSE, warning=FALSE}
+aus_production %>%
+  autoplot(Gas) +
+  labs(title = 'Gas Production') +
+  geom_line(col = '#FF8C00') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
 ```
 
 \ 
 
 ### Exercise 3.3
 **Why is a Box-Cox transformation unhelpful for the canadian_gas data**?
+
+```{r fig.width=10, exercise3.3CanadianGasProduction, eval=TRUE, message=FALSE, warning=FALSE}
+canadian_gas %>%
+  autoplot(Volume) +
+  labs(title = 'Canadian Gas Production') +
+  geom_line(col = '#1E90FF') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
 
 
 \ 

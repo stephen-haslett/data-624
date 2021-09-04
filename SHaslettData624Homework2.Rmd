@@ -16,9 +16,37 @@ library(DT)
 ### Exercise 3.1
 **Consider the GDP information in _global_economy_. Plot the GDP per capita for each country over time. Which country has the highest GDP per capita? How has this changed over time?**.
 
-```{r exercise3.1, eval=TRUE, message=FALSE, warning=FALSE}
 
+**_A. Plot the GDP per capita for each country over time. How has this changed over time_**?
+
+_Looking at the below plot, we can say that there is an upward trend in GDP over time_.
+
+
+```{r, exercise3.1A, eval=TRUE, message=FALSE, warning=FALSE}
+tsibble(global_economy, key = Code, index = Year) %>%
+  autoplot(GDP / Population, show.legend = FALSE) +
+  labs(title = 'GDP Per Capita For All Countries',
+       y = 'US Dollars')
 ```
+
+
+**_B. Which country has the highest GDP per capita_**?
+
+_The below plot shows us that the country with the highest GDP is Monaco. Monaco's GDP reached $185000 US dollars in 2014_.
+
+```{r, exercise3.1B, eval=TRUE, message=FALSE, warning=FALSE}
+country_gdp <- global_economy %>%
+  mutate('GDP_per_capita' = GDP / Population) %>%
+  select(Country, Year, GDP_per_capita) %>%
+  arrange(desc(GDP_per_capita)) %>%
+  head(10)
+
+country_with_highest_gdp <- tsibble(country_gdp, key = Country, index = Year)
+autoplot(country_with_highest_gdp) +
+  labs(title = 'Country with The Highest GDP',
+       y ='US Dollars')
+```
+
 
 \ 
 

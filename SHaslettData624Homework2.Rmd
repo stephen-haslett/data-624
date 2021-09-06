@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(fpp3)
 library(DT)
 library(feasts)
+library(seasonal)
 ```
 
 ### Exercise 3.1
@@ -307,14 +308,53 @@ gas %>%
 
 **3.7 C. _Do the results support the graphical interpretation from part a_**?
 
+_Yes - the results support the graphical interpretation from part a. The results capture the seasonailty displayed in part a, and an upward trend is also identified_.
+
 
 **3.7 D. _Compute and plot the seasonally adjusted data_**.
 
+```{r exercise3.7D, eval=TRUE, message=FALSE, warning=FALSE}
+gas_seasonally_adjusted <- gas %>% model(classical_decomposition(Gas, type = 'multiplicative')) %>% components()
+
+gas_seasonally_adjusted %>%
+  ggplot(aes(x = Quarter)) +
+  geom_line(aes(y = Gas, color = 'Data')) +
+  geom_line(aes(y = season_adjust, color = 'Seasonally Adjusted')) +
+  geom_line(aes(y = trend, color = 'Trend')) +
+  labs(title = 'Last Five Years of Gas Data Seasonally Adjusted')
+```
 
 **3.7 E. _Change one observation to be an outlier (e.g., add 300 to one observation), and recompute the seasonally adjusted data. What is the effect of the outlier_**.
 
+_Adding the outlier to the middle of the time series results in a large spike in the seasonally adjusted data. It also results in the upward trend in the seasonally adjusted data being diminished_.
+
+```{r exercise3.7E, eval=TRUE, message=FALSE, warning=FALSE}
+gas_outlier <- gas
+gas_outlier$Gas[10] <-gas_outlier$Gas[10] + 300
+
+gas_outlier %>% model(classical_decomposition(Gas, type = 'multiplicative')) %>% components() %>%
+  ggplot(aes(x = Quarter)) +
+  geom_line(aes(y = Gas, color = 'Data')) +
+  geom_line(aes(y = season_adjust, color = 'Seasonally Adjusted')) +
+  geom_line(aes(y = trend, color = 'Trend')) +
+  labs(title = 'Last Five Years of Gas Data Seasonally Adjusted With Added Outlier')
+```
 
 **3.7 F. _Does it make any difference if the outlier is near the end rather than in the middle of the time series_**?
+
+_Adding the outlier near the end of the time series results in a spike at the end of the adjusted data. It also results in the upward trend being maintained, which is not the case when the outlier is added to the middle of the timeseries_. 
+
+```{r exercise3.7F, eval=TRUE, message=FALSE, warning=FALSE}
+gas_outlier <- gas
+gas_outlier$Gas[20] <-gas_outlier$Gas[10] + 300
+
+gas_outlier %>% model(classical_decomposition(Gas, type = 'multiplicative')) %>% components() %>%
+  ggplot(aes(x = Quarter)) +
+  geom_line(aes(y = Gas, color = 'Data')) +
+  geom_line(aes(y = season_adjust, color = 'Seasonally Adjusted')) +
+  geom_line(aes(y = trend, color = 'Trend')) +
+  labs(title = 'Last Five Years of Gas Data Seasonally Adjusted With Added Outlier')
+```
 
 
 \ 
@@ -322,6 +362,28 @@ gas %>%
 ### Exercise 3.8
 **Recall your retail time series data (from Exercise 8 in Section 2.10). Decompose the series using X-11. Does it reveal any outliers, or unusual features that you had not noticed previously**?
 
+_The upward trend in the X-11 decomposition data continues, but displays more troughs than the data in the Multiplicative decomposition. The seasonality in the X-11 decomposition also displays a steady downward trend_.    
+
+**Multiplicative Decomposition**
+
+```{r exercise3.8Classical, eval=TRUE, message=FALSE, warning=FALSE}
+myseries %>%
+  model(classical_decomposition(Turnover, type = 'multiplicative')) %>%
+  components() %>%
+  autoplot() + 
+  ggtitle('Monthly Australian Retail Data Multiplicative Decomposition')
+```
+
+
+**X-11 Decomposition**
+
+```{r exercise3.8X11, eval=TRUE, message=FALSE, warning=FALSE}
+myseries %>%
+  model(x11 = X_13ARIMA_SEATS(Turnover ~  x11())) %>%
+  components() %>%
+  autoplot() + 
+  ggtitle('Monthly Australian Retail Data X-11 Decomposition')
+```
 
 \ 
 

@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(fpp3)
 library(DT)
+library(feasts)
 ```
 
 ### Exercise 3.1
@@ -123,8 +124,40 @@ canadian_gas %>%
 \ 
 
 ### Exercise 3.4
-**What Box-Cox transformation would you select for your retail data (from Exercise 8 in Section 2.10)**?
+**What Box-Cox transformation would you select for your retail data (_from Exercise 8 in Section 2.10_)**?
 
+_Using the **boxcox()** function's default method to find an optimal lambda, we get a lambda value of -0.02 that we use to transform the "Turnover" response variable_.
+
+```{r fig.width=10, exercise3.4ausRetailData, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(12345678)
+myseries <- aus_retail %>%
+  filter(`Series ID` == sample(aus_retail$`Series ID`, 1))
+
+myseries %>%
+  autoplot(Turnover) +
+  labs(title = 'Original Monthly Australian Retail Data', x = 'Month') +
+  geom_line(col = '#2E8B57') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
+
+```{r fig.width=10, exercise3.4ausRetailBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
+lambda <- myseries %>% features(Turnover, features = guerrero)
+
+myseries %>%
+  autoplot(box_cox(Turnover, lambda$lambda_guerrero)) +
+  labs(title = 'Monthly Australian Retail Data Box-Cox Transformation', y = 'Turnover', x = 'Month') +
+  geom_line(col = '#FA8072') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
+
+
+```{r, lambdaValue, eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+paste('The Lambda value for the above transformation is', '', round(lambda$lambda_guerrero, 2))
+```
 
 \ 
 

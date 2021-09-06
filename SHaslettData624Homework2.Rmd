@@ -391,6 +391,12 @@ myseries %>%
 **Figures 3.19 and 3.20 show the result of decomposing the number of persons in the civilian labour force in Australia each month from February 1978 to August 1995**.
 
 
+![Figure 3.19](./fig319.png)
+
+
+![Figure 3.20](./fig320.png)
+
+
 **3.9 A. _Write about 3–5 sentences describing the results of the decomposition. Pay particular attention to the scales of the graphs in making your interpretation_**.
 
 

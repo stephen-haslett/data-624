@@ -111,15 +111,31 @@ aus_production %>%
 ### Exercise 3.3
 **Why is a Box-Cox transformation unhelpful for the canadian_gas data**?
 
+_Applying Box-Cox to the data does not appear to stablize the variance in the data - the results are very similiar to the original plot_.
+
 ```{r fig.width=10, exercise3.3CanadianGasProduction, eval=TRUE, message=FALSE, warning=FALSE}
 canadian_gas %>%
   autoplot(Volume) +
-  labs(title = 'Canadian Gas Production') +
+  labs(title = 'Canadian Gas Production', y = 'Volume', x = 'Month') +
   geom_line(col = '#1E90FF') +
   theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
         panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
         panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
 ```
+
+
+```{r fig.width=10, exercise3.3CanadianGasProductionBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
+canadian_gas_lambda <- canadian_gas %>% features(Volume, features = guerrero)
+
+canadian_gas %>%
+  autoplot(box_cox(Volume, canadian_gas_lambda$lambda_guerrero)) +
+  labs(title = 'Canadian Gas Production Box-Cox Transformation', y = 'Volume', x = 'Month') +
+  geom_line(col = '#DAA520') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
+
 
 
 \ 
@@ -399,7 +415,13 @@ myseries %>%
 
 **3.9 A. _Write about 3–5 sentences describing the results of the decomposition. Pay particular attention to the scales of the graphs in making your interpretation_**.
 
+_The number of people in the civilian labour force in Australia has risen steadily over time as per the trend data in figure 3.19. The month to month breakdown of the seasonal data in figure 3.20 tells us that some months display greater variation velocities than other months. We can also identify a seasonal pattern in the "season_year" graph_.
+
+
+
 
 **3.9 B. _Is the recession of 1991/1992 visible in the estimated components_**?
+
+_Yes, a drop in employment during 1991/1992 can be seen in the remainder graph. This drop is not explained by the seasonality or trend data_.
 
 

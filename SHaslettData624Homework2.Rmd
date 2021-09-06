@@ -126,7 +126,7 @@ canadian_gas %>%
 ### Exercise 3.4
 **What Box-Cox transformation would you select for your retail data (_from Exercise 8 in Section 2.10_)**?
 
-_Using the **boxcox()** function's default method to find an optimal lambda, we get a lambda value of -0.02 that we use to transform the "Turnover" response variable_.
+_Using the **boxcox()** function's default method to find an optimal lambda, we get a lambda value of -0.02 that we use to transform the "Turnover" response variable in the "Box-Cox Transformation" plot below_.
 
 ```{r fig.width=10, exercise3.4ausRetailData, eval=TRUE, message=FALSE, warning=FALSE}
 set.seed(12345678)
@@ -156,13 +156,118 @@ myseries %>%
 
 
 ```{r, lambdaValue, eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
-paste('The Lambda value for the above transformation is', '', round(lambda$lambda_guerrero, 2))
+paste('The Lambda value for the above transformation is', round(lambda$lambda_guerrero, 2))
 ```
 
 \ 
 
 ### Exercise 3.5
 **For the following series, find an appropriate Box-Cox transformation in order to stabilise the variance. Tobacco from aus_production, Economy class passengers between Melbourne and Sydney from ansett, and Pedestrian counts at Southern Cross Station from pedestrian**.
+
+**_A. Tobacco from aus_production_**
+
+```{r exercise3.5Tobacco, eval=TRUE, message=FALSE, warning=FALSE}
+aus_production %>%
+  autoplot(Tobacco) +
+  labs(title = 'Original Tobacco Production Data', x = 'Quarter') +
+  geom_line(col = '#8B4513') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
+
+
+```{r exercise3.5TobaccoBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
+tobacco_lambda <- aus_production %>% features(Tobacco, features = guerrero)
+
+aus_production %>%
+  autoplot(box_cox(Tobacco, tobacco_lambda$lambda_guerrero)) +
+  labs(title = ' Tobacco Production Data Box-Cox Transformation', y = 'Tobacco', x = 'Quarter') +
+  geom_line(col = '#F4A460') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
+
+
+```{r, lambdaValueA, eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+paste('The Lambda value for the above transformation is', round(tobacco_lambda$lambda_guerrero, 2))
+```
+
+\ 
+
+**_B. Economy class passengers between Melbourne and Sydney from ansett_**
+
+```{r exercise3.5Passengers, eval=TRUE, message=FALSE, warning=FALSE}
+economy_passengers <- ansett %>%
+  filter(Class == 'Economy', Airports == 'MEL-SYD')
+
+economy_passengers %>%
+  autoplot(Passengers) +
+  labs(title = 'Original Economy Class Passengers Between Melbourne And Sydney Data', x = 'Week') +
+  geom_line(col = '#EE82EE') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+
+```
+
+
+```{r exercise3.5PassengersBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
+passengers_lambda <- ansett %>% filter(Class == 'Economy', Airports == 'MEL-SYD') %>%
+  features(Passengers, features = guerrero)
+
+ansett %>% filter(Class == 'Economy', Airports == 'MEL-SYD') %>%
+  autoplot(box_cox(Passengers, passengers_lambda$lambda_guerrero)) +
+  labs(title = 'Economy Class Passengers Between Melbourne And Sydney Data Box-Cox Transformation', y = 'Passengers', x = 'Week') +
+  geom_line(col = '#FF6347') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
+
+
+```{r, lambdaValueB, eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+paste('The Lambda value for the above transformation is', round(passengers_lambda$lambda_guerrero, 2))
+```
+
+\ 
+
+**_C. Pedestrian counts at Southern Cross Station from pedestrian_**
+
+```{r fig.width=10, exercise3.5Pedestrians, eval=TRUE, message=FALSE, warning=FALSE}
+pedestrian_counts <- pedestrian %>%
+  filter(Sensor == 'Southern Cross Station')
+
+pedestrian_counts %>%
+  autoplot(Count) +
+  labs(title = 'Original Pedestrian Counts At Southern Cross Station Data',  y = 'Count', x = 'Date') +
+  geom_line(col = '#FFA07A') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+
+```
+
+
+```{r exercise3.5PedestriansBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
+pedestrian_lambda <- pedestrian %>% filter(Sensor == 'Southern Cross Station') %>%
+  features(Count, features = guerrero)
+
+pedestrian %>% filter(Sensor == 'Southern Cross Station') %>%
+  autoplot(box_cox(Count, pedestrian_lambda$lambda_guerrero)) +
+  labs(title = 'Pedestrian Counts At Southern Cross Station Data Box-Cox Transformation', y = 'Count', x = 'Date') +
+  geom_line(col = '#FF6347') +
+  theme(panel.grid.major.x = element_line(size = 0.15, linetype = 'solid', color = '#808080'),
+        panel.grid.minor.x = element_line(size = 0.15, linetype = 'solid', color = '#696969'),
+        panel.grid.major.y = element_line(size = 0.15, linetype = 'solid', color = '#2F4F4F'))
+```
+
+
+```{r, lambdaValueC, eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+paste('The Lambda value for the above transformation is', round(pedestrian_lambda$lambda_guerrero, 2))
+```
+
 
 
 \ 
@@ -175,6 +280,8 @@ gas <- tail(aus_production, 5*4) %>% select(Gas)
 ```
 
 **3.7 A. _Plot the time series. Can you identify seasonal fluctuations and/or a trend-cycle_**?
+
+_The below plot shows us that there are seasonal fluctuations with an upward growth trend. Each season peaks around the middle of the year which may be indicative of summer months when people tend to take more road trips and thus the demand for gas increases_.
 
 ```{r exercise3.7A, eval=TRUE, message=FALSE, warning=FALSE}
 gas %>%

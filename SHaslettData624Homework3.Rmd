@@ -1,0 +1,123 @@
+---
+title: "Data 624 Homework 3"
+subtitle: "Week 4 Forecasting"
+author: "Stephen Haslett"
+date: "9/14/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(fpp3)
+library(DT)
+library(feasts)
+library(seasonal)
+```
+
+### Exercise 5.1
+**TEXT HERE**.
+
+
+**_A._**?
+
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+
+**_B._**?
+
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+
+\ 
+
+### Exercise 5.2
+**TEXT HEREt**.
+
+**_A._**
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
+
+**_B._**
+```{r  exercise3.2AusLivestock, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
+
+**_C._**
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
+
+**_D._**
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+\ 
+
+### Exercise 5.3
+**TEXT HERE**?
+
+_TEXT_.
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+
+
+\ 
+
+### Exercise 5.4
+**What Box-Cox transformation would you select for your retail data (_from Exercise 8 in Section 2.10_)**?
+
+_TEXT_.
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
+
+```{r eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+
+```
+
+\ 
+
+### Exercise 5.7
+**TEXT**.
+
+**_A._**
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
+
+```{r eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
+
+```{r eval=TRUE, message=FALSE, warning=FALSE, echo=FALSE}
+
+```
+
+\ 
+
+

@@ -13,6 +13,8 @@ library(fpp3)
 library(DT)
 library(feasts)
 library(seasonal)
+library(tsibble)
+library(forecast)
 ```
 
 ### Exercise 5.1
@@ -29,6 +31,7 @@ library(seasonal)
 
 
 ```{r eval=TRUE, message=FALSE, warning=FALSE}
+
 ```
 
 
@@ -71,16 +74,21 @@ library(seasonal)
 **d. Try using some of the other benchmark functions to forecast the same data set. Which do you think is best? Why**?
 
 
-**_A._**
+**_A. Produce a time plot of the series_**.
 
-```{r eval=TRUE, message=FALSE, warning=FALSE}
+```{r 5.2A, eval=TRUE, message=FALSE, warning=FALSE}
+facebook_stock <- gafa_stock %>% 
+  filter(Symbol == 'FB')
 
+facebook_stock %>% autoplot(Close) +
+  labs(title = 'Facebook Stock Time Plot',
+       y = 'Closing Value',
+       x = 'Date')
 ```
 
 
-**_B._**
-```{r  exercise3.2AusLivestock, eval=TRUE, message=FALSE, warning=FALSE}
-
+**_B. Produce forecasts using the drift method and plot them**._**
+```{r 5.2B, eval=TRUE, message=FALSE, warning=FALSE}
 ```
 
 

@@ -30,40 +30,79 @@ library(forecast)
 **_A. Australian Population (global_economy)_**.
 
 
-```{r eval=TRUE, message=FALSE, warning=FALSE}
-
+```{r 5.1A, eval=TRUE, message=FALSE, warning=FALSE}
+global_economy %>%
+  filter(Code == 'AUS') %>% 
+  model(RW(Population ~ drift())) %>% 
+  forecast(h = '15 years') %>% 
+  autoplot(global_economy) +
+  labs(title = 'Australian Population Drift Forecast')
 ```
 
 
 **_B. Bricks (aus_production)_**.
 
 
-```{r eval=TRUE, message=FALSE, warning=FALSE}
+```{r 5.1B, eval=TRUE, message=FALSE, warning=FALSE}
+aus_production %>% 
+  # Remove NAs from the "Bricks" column.
+  drop_na(Bricks) %>%
+  # Apply a seasonal naive forcast and plot the data.
+  model(SNAIVE(Bricks)) %>% 
+  forecast(h = '15 years') %>% 
+  autoplot(aus_production) +
+  labs(title = 'Australian Clay Brick Production Seasonal Naive Forcast')
 ```
 
 **_C. NSW Lambs (aus_livestock)_**.
 
 
-```{r eval=TRUE, message=FALSE, warning=FALSE}
+```{r 5.1C, eval=TRUE, message=FALSE, warning=FALSE}
+# Disable scientific numbers for readability purposes.
+options(scipen = 999)
+
+# Filter the "aus_livestock" dataset by Animal (Lambs) and State (New South Wales).
+NSWLambs <- aus_livestock %>% 
+  filter(Animal == 'Lambs' & State == 'New South Wales')
+
+# Apply a seasonal naive forcast and plot the data.
+NSWLambs %>%
+  model(SNAIVE(Count)) %>% 
+  forecast(h = '15 years') %>% 
+  autoplot(NSWLambs) +
+  labs(title = 'New South Wales Lambs Seasonal Naive Forecast')
+  
 ```
 
 **_D. Household wealth (hh_budget)_**.
 
 
-```{r eval=TRUE, message=FALSE, warning=FALSE}
+```{r 5.1D, eval=TRUE, message=FALSE, warning=FALSE}
+hh_budget %>%
+  model(RW(Wealth ~ drift())) %>% 
+  forecast(h = '15 years') %>% 
+  autoplot(hh_budget) +
+  labs(title = 'Household Wealth Drift Forecast')
 ```
 
 **_E. Australian takeaway food turnover (aus_retail)_**.
 
 
-```{r eval=TRUE, message=FALSE, warning=FALSE}
+```{r 5.1E, fig.height=15, fig.width=10, eval=TRUE, message=FALSE, warning=FALSE}
+TakeAwayFoodTurnover <- aus_retail %>%
+  filter(Industry == 'Cafes, restaurants and takeaway food services')
+TakeAwayFoodTurnover %>%
+  model(RW(Turnover ~ drift())) %>% 
+  forecast(h = '15 years') %>% 
+  autoplot(TakeAwayFoodTurnover) +
+  labs(title = 'Australian Takeaway Food Turnover Drift Forecast')
 ```
 
 
 \ 
 
 ### Exercise 5.2
-**Use the Facebook stock price (_data set gafa_stock_) to do the following:**.
+**Use the Facebook stock price data set (_gafa_stock_) to do the following:**.
 
 **a. Produce a time plot of the series**.
 

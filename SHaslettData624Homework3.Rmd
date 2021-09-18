@@ -152,7 +152,20 @@ fb_forecast %>% autoplot(facebook_stock) +
 
 **_C. Show that the forecasts are identical to extending the line drawn between the first and last observations_**.
 ```{r eval=TRUE, message=FALSE, warning=FALSE}
-
+fb_forecast %>% autoplot(facebook_stock) +
+  labs(title = 'Facebook Stock Drift Forcast',
+       y = 'Closing Value',
+       x = 'Date') +
+  geom_segment(
+    aes(
+      xend = Date[length(Date)],
+      yend = Close[length(Close)],
+      x = Date[1],
+      y = Close[1]
+    ),
+    linetype = 'dashed',
+    color = '#DC143C'
+  )
 ```
 
 

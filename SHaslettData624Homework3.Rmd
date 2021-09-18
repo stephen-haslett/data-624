@@ -151,7 +151,7 @@ fb_forecast %>% autoplot(facebook_stock) +
 
 
 **_C. Show that the forecasts are identical to extending the line drawn between the first and last observations_**.
-```{r eval=TRUE, message=FALSE, warning=FALSE}
+```{r 5.2C, eval=TRUE, message=FALSE, warning=FALSE}
 fb_forecast %>% autoplot(facebook_stock) +
   labs(title = 'Facebook Stock Drift Forcast',
        y = 'Closing Value',
@@ -164,13 +164,33 @@ fb_forecast %>% autoplot(facebook_stock) +
       y = Close[1]
     ),
     linetype = 'dashed',
-    color = '#DC143C'
+    color = '#DC143C',
+    linetype = 'dashed'
   )
 ```
 
 
 **_D Try using some of the other benchmark functions to forecast the same data set. Which do you think is best? Why_**?
-```{r eval=TRUE, message=FALSE, warning=FALSE}
+```{r 5.2D, fig.width=10, eval=TRUE, message=FALSE, warning=FALSE}
+facebook_stock <- gafa_stock %>%
+  filter(Symbol == "FB", year(Date) >= 2018) %>%
+  mutate(Date = Date) %>%
+  update_tsibble(index = Date, regular = TRUE)
+
+fb_forecast <- facebook_stock %>%
+  fill_gaps() %>% 
+  model(
+      Naive = NAIVE(Close),
+      `Seasonal Naive` = SNAIVE(Close),
+      Mean = MEAN(Close),
+      Drift = RW(Close ~ drift())
+  ) %>%
+  forecast(h = 150)
+
+fb_forecast %>% autoplot(facebook_stock, level = FALSE) +
+  labs(title = 'Facebook Stock Forcasts Multiple Forcast Models',
+       y = 'Closing Value',
+       x = 'Date')
 ```
 
 \ 

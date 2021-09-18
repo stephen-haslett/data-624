@@ -14,6 +14,7 @@ library(DT)
 library(feasts)
 library(seasonal)
 library(tsibble)
+library(lubridate)
 library(forecast)
 ```
 
@@ -126,18 +127,36 @@ facebook_stock %>% autoplot(Close) +
 ```
 
 
-**_B. Produce forecasts using the drift method and plot them**._**
+**_B. Produce forecasts using the drift method and plot them_**.
 ```{r 5.2B, eval=TRUE, message=FALSE, warning=FALSE}
+# Due to an issue with the "gafa_stock" dataset, I was getting the following error -
+# "Error: Problem with `mutate()` input `RW(Close ~ drift())`. x `new_data.tbl_ts(.data, round(n))`
+# can't handle tsibble of irregular interval. ℹ Input `RW(Close ~ drift())` is `(function (object, ...)".
+# To fix this issue, I altered the suggested fix for this issue documented here - https://github.com/tidyverts/tsibbledata/issues/8. 
+facebook_stock <- gafa_stock %>%
+  filter(Symbol == "FB", year(Date) >= 2018) %>%
+  mutate(Date = Date) %>%
+  update_tsibble(index = Date, regular = TRUE)
+
+fb_forecast <- facebook_stock %>%
+  fill_gaps() %>% 
+  model(RW(Close ~ drift())) %>%
+  forecast(h = 15)
+
+fb_forecast %>% autoplot(facebook_stock) +
+  labs(title = 'Facebook Stock Drift Forcast',
+       y = 'Closing Value',
+       x = 'Date')
 ```
 
 
-**_C._**
+**_C. Show that the forecasts are identical to extending the line drawn between the first and last observations_**.
 ```{r eval=TRUE, message=FALSE, warning=FALSE}
 
 ```
 
 
-**_D._**
+**_D Try using some of the other benchmark functions to forecast the same data set. Which do you think is best? Why_**?
 ```{r eval=TRUE, message=FALSE, warning=FALSE}
 ```
 

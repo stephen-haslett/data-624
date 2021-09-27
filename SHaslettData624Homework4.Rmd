@@ -8,14 +8,11 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-
-library(fpp3)
+library(corrplot)
+library(caret)
+library(tidyr)
+library(dplyr)
 library(DT)
-library(feasts)
-library(seasonal)
-library(tsibble)
-library(lubridate)
-library(forecast)
 library(mlbench)
 ```
 
@@ -29,13 +26,40 @@ str(Glass)
 
 **(a) Using visualizations, explore the predictor variables to understand their distributions as well as the relationships between predictors.**
 
+```{r 3.1A, eval=TRUE, message=FALSE, warning=FALSE}
+# Make a copy of the Glass dataset and the categorical variable - "Type".
+glassCopy <- subset(Glass, select = -Type) 
+
+# Plot the predictor variables distribution.
+glassCopy %>%
+  gather() %>% 
+  ggplot(aes(value, color = 'red', fill = 'brown')) +
+  facet_wrap(~ key, scales = 'free') +
+  geom_histogram(bins = 16) +
+  theme_light() +
+  theme(legend.position = 'none') +
+  ggtitle('Distribution of Predictor Variables')
+```
+
+
+```{r 3.1ACorPlot, eval=TRUE, message=FALSE, warning=FALSE}
+
+# Create a correlation matrix of the predictor variables.
+corrplot(cor(glassCopy))
+```
+
+
 
 
 **(b) Do there appear to be any outliers in the data? Are any predictors skewed?**
 
+Looking at the "Distribution of Predictor Variables" plot above, we can see that some of the variables are close to normally distributed (_AI, Ca, Na, RI, and Si_), whilst the remaining variables are skewed (_Ba, Fe, K, and Mg_).
 
+\ 
 
 **(c) Are there any relevant transformations of one or more predictors that might improve the classification model?**
+
+Yes - applying a Box-Cox or Log transformation to the skewed variables - _Ba, Fe, K, and Mg_, might improve the classification model.
 
 
 

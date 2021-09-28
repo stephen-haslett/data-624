@@ -78,15 +78,39 @@ data(Soybean)
 str(Soybean)
 ```
 
+\ 
 
 **(a) Investigate the frequency distributions for the categorical predictors. Are any of the distributions degenerate in the ways discussed earlier in this chapter?**
 
+```{r 3.2A, eval=TRUE, message=FALSE, warning=FALSE}
+# Search for degenerate distributions in the Soybean dataset.
+degenerateDistributions <- nearZeroVar(Soybean)
+colnames(Soybean)[degenerateDistributions]
+```
 
+There are 3 variables in the Soybean dataset with degenerate distributions - **_leaf.mild_**, **_mycelium_**, and **_sclerotia_**.
+
+\ 
 
 **(b) Roughly 18 % of the data are missing. Are there particular predictors that are more likely to be missing? Is the pattern of missing data related to the classes?**
 
+```{r 3.2B, eval=TRUE, message=FALSE, warning=FALSE}
+# Print out a count of missing values by column.
+colSums(is.na(Soybean))
+```
+
+
+```{r 3.2BMissingnessPercentage, eval=TRUE, message=FALSE, warning=FALSE}
+# Display missing column values as a percentage.
+round(colSums(is.na(Soybean)) / nrow(Soybean), 2)
+```
 
 
 **(c) Develop a strategy for handling missing data, either by eliminating predictors or imputation.**
+
+```{r 3.2C, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
 
 \ 

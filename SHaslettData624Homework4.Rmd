@@ -12,6 +12,7 @@ library(corrplot)
 library(caret)
 library(tidyr)
 library(dplyr)
+library(kableExtra)
 library(DT)
 library(mlbench)
 ```
@@ -95,15 +96,33 @@ There are 3 variables in the Soybean dataset with degenerate distributions - **_
 **(b) Roughly 18 % of the data are missing. Are there particular predictors that are more likely to be missing? Is the pattern of missing data related to the classes?**
 
 ```{r 3.2B, eval=TRUE, message=FALSE, warning=FALSE}
-# Print out a count of missing values by column.
-colSums(is.na(Soybean))
+# Print out a table of missing values by column (sorted in descending order).
+missingValuesOrdered <- order(-colSums(is.na(Soybean)))
+
+kable(colSums(is.na(Soybean))[missingValuesOrdered]) %>%
+    kable_styling(bootstrap_options = c('striped', 'hover', 'condensed', 'responsive')) %>% 
+    scroll_box(width = '100%', height = '600px')
+```
+
+\ 
+
+```{r 3.2CmissingClasses, eval=TRUE, message=FALSE, warning=FALSE}
+# Print a table containing a count of missing values by class.
+classesMissingValues <- Soybean %>%
+  mutate(nul = rowSums(is.na(Soybean))) %>%
+  group_by(Class) %>%
+  summarize(missing = sum(nul)) %>%
+  filter(missing != 0)
+
+kable(classesMissingValues) %>%
+      kable_styling(bootstrap_options = c('striped', 'hover', 'condensed', 'responsive')) %>% 
+      scroll_box(width = '100%')
 ```
 
 
-```{r 3.2BMissingnessPercentage, eval=TRUE, message=FALSE, warning=FALSE}
-# Display missing column values as a percentage.
-round(colSums(is.na(Soybean)) / nrow(Soybean), 2)
-```
+\ 
+
+
 
 
 **(c) Develop a strategy for handling missing data, either by eliminating predictors or imputation.**

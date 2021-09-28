@@ -24,10 +24,12 @@ data(Glass)
 str(Glass)
 ```
 
+\ 
+
 **(a) Using visualizations, explore the predictor variables to understand their distributions as well as the relationships between predictors.**
 
 ```{r 3.1A, eval=TRUE, message=FALSE, warning=FALSE}
-# Make a copy of the Glass dataset and the categorical variable - "Type".
+# Make a copy of the Glass dataset and remove the categorical variable - "Type".
 glassCopy <- subset(Glass, select = -Type) 
 
 # Plot the predictor variables distribution.
@@ -53,7 +55,9 @@ corrplot(cor(glassCopy))
 
 **(b) Do there appear to be any outliers in the data? Are any predictors skewed?**
 
-Looking at the "Distribution of Predictor Variables" plot above, we can see that some of the variables are close to normally distributed (_AI, Ca, Na, RI, and Si_), whilst the remaining variables are skewed (_Ba, Fe, K, and Mg_).
+Looking at the "Distribution of Predictor Variables" plot above, we can see that some of the variables are close to normally distributed (_AI, Ca, Na, RI, and Si_), whilst the remaining variables are skewed (_Ba, Fe, K, and Mg_). _Ba_, _Fe_, and _K_ are skewed to the right. _K_ has an outlier at 6, and there are a lot of outliers in _Al_, _Ba_, _Ca_, _Mg_, _Fe_, and _Ri_.
+
+The correlation matrix tells us that most of the variables are not strongly related. Some exceptions to this are the relationships between _Si_ and _RI_, _Ca_ and _RI_, _Ba_ and _Mg_.
 
 \ 
 
@@ -62,7 +66,8 @@ Looking at the "Distribution of Predictor Variables" plot above, we can see that
 Yes - applying a Box-Cox or Log transformation to the skewed variables - _Ba, Fe, K, and Mg_, might improve the classification model.
 
 
-
+\ 
+\ 
 
 ### Exercise 3.2
 The soybean data can also be found at the UC Irvine Machine Learning Repository. Data were collected to predict disease in 683 soybeans. The 35 predictors are mostly categorical and include information on the environmental conditions (e.g., temperature, precipitation) and plant conditions (e.g., left spots, mold growth). The outcome labels consist of 19 distinct classes. The data can be loaded via:

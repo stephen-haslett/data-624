@@ -1,0 +1,162 @@
+---
+title: "Data 624 Homework 4"
+subtitle: "Week 5 Data Preprocessing/Overfitting"
+author: "Stephen Haslett"
+date: "9/26/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(corrplot)
+library(caret)
+library(tidyr)
+library(dplyr)
+library(mice)
+library(kableExtra)
+library(mlbench)
+```
+
+### Exercise 3.1
+The UC Irvine Machine Learning Repository6 contains a data set related to glass identification. The data consist of 214 glass samples labeled as one of seven class categories. There are nine predictors, including the refractive index and percentages of eight elements: Na, Mg, Al, Si, K, Ca, Ba, and Fe. The data can be accessed via:
+
+```{r 3.1, eval=TRUE, message=FALSE, warning=FALSE}
+data(Glass)
+str(Glass)
+```
+
+\ 
+
+**(a) Using visualizations, explore the predictor variables to understand their distributions as well as the relationships between predictors.**
+
+```{r 3.1A, eval=TRUE, message=FALSE, warning=FALSE}
+# Make a copy of the Glass dataset and remove the categorical variable - "Type".
+glassCopy <- subset(Glass, select = -Type) 
+
+# Plot the predictor variables distribution.
+glassCopy %>%
+  gather() %>% 
+  ggplot(aes(value, color = 'red', fill = 'brown')) +
+  facet_wrap(~ key, scales = 'free') +
+  geom_histogram(bins = 16) +
+  theme_light() +
+  theme(legend.position = 'none') +
+  ggtitle('Distribution of Predictor Variables')
+```
+
+
+```{r 3.1ACorPlot, eval=TRUE, message=FALSE, warning=FALSE}
+
+# Create a correlation matrix of the predictor variables.
+corrplot(cor(glassCopy))
+```
+
+
+
+
+**(b) Do there appear to be any outliers in the data? Are any predictors skewed?**
+
+Looking at the "Distribution of Predictor Variables" plot above, we can see that some of the variables are close to normally distributed (_AI, Ca, Na, RI, and Si_), whilst the remaining variables are skewed (_Ba, Fe, K, and Mg_). _Ba_, _Fe_, and _K_ are skewed to the right. _K_ has an outlier at 3 and 6, and there are a lot of outliers in _Al_, _Ba_, _Ca_, _Mg_, _Fe_, and _Ri_.
+
+The correlation matrix tells us that most of the variables are not strongly related. Some exceptions to this are the relationships between _Si_ and _RI_, _Ca_ and _RI_, _Ba_ and _Mg_.
+
+\ 
+
+**(c) Are there any relevant transformations of one or more predictors that might improve the classification model?**
+
+Yes - applying a Box-Cox or Log transformation to the skewed variables - _Ba, Fe, K, and Mg_, might improve the classification model.
+
+
+\ 
+\ 
+
+### Exercise 3.2
+The soybean data can also be found at the UC Irvine Machine Learning Repository. Data were collected to predict disease in 683 soybeans. The 35 predictors are mostly categorical and include information on the environmental conditions (e.g., temperature, precipitation) and plant conditions (e.g., left spots, mold growth). The outcome labels consist of 19 distinct classes. The data can be loaded via:
+
+
+```{r 3.2, eval=TRUE, message=FALSE, warning=FALSE}
+data(Soybean)
+str(Soybean)
+```
+
+\ 
+
+**(a) Investigate the frequency distributions for the categorical predictors. Are any of the distributions degenerate in the ways discussed earlier in this chapter?**
+
+```{r 3.2BNearZeroTable, eval=TRUE, message=FALSE, warning=FALSE}
+nearZeroVar(Soybean, saveMetrics = TRUE) %>%
+  kable(caption = 'Variables Near Zero Variance Status Report') %>%
+  kable_styling()
+```
+
+
+```{r 3.2A, eval=TRUE, message=FALSE, warning=FALSE}
+# Search for degenerate distributions in the Soybean dataset.
+degenerateDistributions <- nearZeroVar(Soybean)
+colnames(Soybean)[degenerateDistributions]
+```
+
+As per the above "_Variables Near Zero Variance Status Report_" table and _NearZeroVar()_ search results, There are 3 variables in the Soybean dataset with degenerate distributions - **_leaf.mild_**, **_mycelium_**, and **_sclerotia_**.
+
+\ 
+
+**(b) Roughly 18 % of the data are missing. Are there particular predictors that are more likely to be missing? Is the pattern of missing data related to the classes?**
+
+```{r 3.2B, eval=TRUE, message=FALSE, warning=FALSE}
+# Print out a table of missing values by column (sorted in descending order).
+missingValuesOrdered <- order(-colSums(is.na(Soybean)))
+
+kable(colSums(is.na(Soybean))[missingValuesOrdered], caption = 'Missing Values By Column') %>%
+    kable_styling(bootstrap_options = c('striped', 'hover', 'condensed', 'responsive')) %>% 
+    scroll_box(width = '100%', height = '600px')
+```
+
+\ 
+
+```{r 3.2CmissingClasses, eval=TRUE, message=FALSE, warning=FALSE}
+# Print a table containing a count of missing values by class.
+classesMissingValues <- Soybean %>%
+  mutate(nul = rowSums(is.na(Soybean))) %>%
+  group_by(Class) %>%
+  summarize(missing = sum(nul)) %>%
+  filter(missing != 0)
+
+kable(classesMissingValues, caption = 'Missing Values By Class') %>%
+      kable_styling(bootstrap_options = c('striped', 'hover', 'condensed', 'responsive')) %>% 
+      scroll_box(width = '100%')
+```
+
+
+\ 
+
+**(c) Develop a strategy for handling missing data, either by eliminating predictors or imputation.**
+
+For this question, I decided to impute missing values using the MICE (_Multivariate Imputation by Chained Equations_)
+package's **mice()** imputation function. As per the below before and after imputation missing values count tables, we can see
+that the imputation has removed all missing values from the dataset.
+
+```{r 3.2CImputationFunction, eval=TRUE, message=FALSE, warning=FALSE}
+#' mice_imputation - Mice Imputation.
+#'
+#' Given a dataset, runs the MICE algorithm on the dataset
+#' to impute both numerical and categorical missing values.
+#'
+#' @param dataframe A dataframe on which to run the MICE algorithm.
+#'
+#' @return The passed dataset with missing values imputed to complete values.
+#'
+mice_imputation <- function(dataframe) {
+  imputation <- mice(dataframe, m = 1, method = 'cart', printFlag = FALSE)
+  imputed <- mice::complete(imputation)
+}
+```
+
+```{r 3.2CImputation, eval=TRUE, message=FALSE, warning=FALSE}
+# Check for empty values prior to imputing the data.
+sapply(Soybean, function(x) sum(is.na(x))) %>% sort(decreasing = TRUE) %>% kable(caption = 'Missing Values Count Before Imputation') %>% kable_styling()
+
+# Check for empty values once again after running the MICE imputation on the data.
+sapply(mice_imputation(Soybean), function(x) sum(is.na(x))) %>% sort(decreasing = TRUE) %>% kable(caption = 'Missing Values Count After Imputation') %>% kable_styling()
+```
+
+\ 

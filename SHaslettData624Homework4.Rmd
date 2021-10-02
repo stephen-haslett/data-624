@@ -12,8 +12,8 @@ library(corrplot)
 library(caret)
 library(tidyr)
 library(dplyr)
+library(mice)
 library(kableExtra)
-library(DT)
 library(mlbench)
 ```
 
@@ -56,7 +56,7 @@ corrplot(cor(glassCopy))
 
 **(b) Do there appear to be any outliers in the data? Are any predictors skewed?**
 
-Looking at the "Distribution of Predictor Variables" plot above, we can see that some of the variables are close to normally distributed (_AI, Ca, Na, RI, and Si_), whilst the remaining variables are skewed (_Ba, Fe, K, and Mg_). _Ba_, _Fe_, and _K_ are skewed to the right. _K_ has an outlier at 6, and there are a lot of outliers in _Al_, _Ba_, _Ca_, _Mg_, _Fe_, and _Ri_.
+Looking at the "Distribution of Predictor Variables" plot above, we can see that some of the variables are close to normally distributed (_AI, Ca, Na, RI, and Si_), whilst the remaining variables are skewed (_Ba, Fe, K, and Mg_). _Ba_, _Fe_, and _K_ are skewed to the right. _K_ has an outlier at 3 and 6, and there are a lot of outliers in _Al_, _Ba_, _Ca_, _Mg_, _Fe_, and _Ri_.
 
 The correlation matrix tells us that most of the variables are not strongly related. Some exceptions to this are the relationships between _Si_ and _RI_, _Ca_ and _RI_, _Ba_ and _Mg_.
 
@@ -122,14 +122,33 @@ kable(classesMissingValues) %>%
 
 \ 
 
-
-
-
 **(c) Develop a strategy for handling missing data, either by eliminating predictors or imputation.**
 
-```{r 3.2C, eval=TRUE, message=FALSE, warning=FALSE}
+For this question, I decided to impute missing values using the MICE (_Multivariate Imputation by Chained Equations_)
+package's **mice()** imputation function.
 
+```{r 3.2CImputationFunction, eval=TRUE, message=FALSE, warning=FALSE}
+#' mice_imputation - Mice Imputation.
+#'
+#' Given a dataset, runs the MICE algorithm on the dataset
+#' to impute both numerical and categorical missing values.
+#'
+#' @param dataframe A dataframe on which to run the MICE algorithm.
+#'
+#' @return The passed dataset with missing values imputed to complete values.
+#'
+mice_imputation <- function(dataframe) {
+  imputation <- mice(dataframe, m = 1, method = 'cart')
+  imputed <- mice::complete(imputation)
+}
 ```
 
+```{r 3.2CImputation, eval=TRUE, message=FALSE, warning=FALSE}
+# Check for empty values prior to imputing the data.
+sapply(Soybean, function(x) sum(is.na(x))) %>% sort(decreasing = TRUE) %>% kable(caption = 'Missing Values Count Before Imputation') %>% kable_styling()
+
+# Check for empty values once again after running the MICE imputation on the data.
+sapply(mice_imputation(Soybean), function(x) sum(is.na(x))) %>% sort(decreasing = TRUE) %>% kable(caption = 'Missing Values Count After Imputation') %>% kable_styling()
+```
 
 \ 

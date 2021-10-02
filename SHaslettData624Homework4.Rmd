@@ -83,13 +83,20 @@ str(Soybean)
 
 **(a) Investigate the frequency distributions for the categorical predictors. Are any of the distributions degenerate in the ways discussed earlier in this chapter?**
 
+```{r 3.2BNearZeroTable, eval=TRUE, message=FALSE, warning=FALSE}
+nearZeroVar(Soybean, saveMetrics = TRUE) %>%
+  kable(caption = 'Variables Near Zero Variance Status Report') %>%
+  kable_styling()
+```
+
+
 ```{r 3.2A, eval=TRUE, message=FALSE, warning=FALSE}
 # Search for degenerate distributions in the Soybean dataset.
 degenerateDistributions <- nearZeroVar(Soybean)
 colnames(Soybean)[degenerateDistributions]
 ```
 
-There are 3 variables in the Soybean dataset with degenerate distributions - **_leaf.mild_**, **_mycelium_**, and **_sclerotia_**.
+As per the above "_Variables Near Zero Variance Status Report_" table and _NearZeroVar()_ search results, There are 3 variables in the Soybean dataset with degenerate distributions - **_leaf.mild_**, **_mycelium_**, and **_sclerotia_**.
 
 \ 
 
@@ -99,7 +106,7 @@ There are 3 variables in the Soybean dataset with degenerate distributions - **_
 # Print out a table of missing values by column (sorted in descending order).
 missingValuesOrdered <- order(-colSums(is.na(Soybean)))
 
-kable(colSums(is.na(Soybean))[missingValuesOrdered]) %>%
+kable(colSums(is.na(Soybean))[missingValuesOrdered], caption = 'Missing Values By Column') %>%
     kable_styling(bootstrap_options = c('striped', 'hover', 'condensed', 'responsive')) %>% 
     scroll_box(width = '100%', height = '600px')
 ```
@@ -114,7 +121,7 @@ classesMissingValues <- Soybean %>%
   summarize(missing = sum(nul)) %>%
   filter(missing != 0)
 
-kable(classesMissingValues) %>%
+kable(classesMissingValues, caption = 'Missing Values By Class') %>%
       kable_styling(bootstrap_options = c('striped', 'hover', 'condensed', 'responsive')) %>% 
       scroll_box(width = '100%')
 ```
@@ -125,7 +132,8 @@ kable(classesMissingValues) %>%
 **(c) Develop a strategy for handling missing data, either by eliminating predictors or imputation.**
 
 For this question, I decided to impute missing values using the MICE (_Multivariate Imputation by Chained Equations_)
-package's **mice()** imputation function.
+package's **mice()** imputation function. As per the below before and after imputation missing values count tables, we can see
+that the imputation has removed all missing values from the dataset.
 
 ```{r 3.2CImputationFunction, eval=TRUE, message=FALSE, warning=FALSE}
 #' mice_imputation - Mice Imputation.
@@ -138,7 +146,7 @@ package's **mice()** imputation function.
 #' @return The passed dataset with missing values imputed to complete values.
 #'
 mice_imputation <- function(dataframe) {
-  imputation <- mice(dataframe, m = 1, method = 'cart')
+  imputation <- mice(dataframe, m = 1, method = 'cart', printFlag = FALSE)
   imputed <- mice::complete(imputation)
 }
 ```

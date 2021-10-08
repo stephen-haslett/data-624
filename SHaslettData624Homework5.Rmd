@@ -115,22 +115,88 @@ _The intervals calculated by R are slightly wider than the intervals we calcualt
 ### Exercise 8.5
 Data set _global_economy_ contains the annual Exports from many countries. Select one country to analyse.
 
+```{r 8.5, eval=TRUE, message=FALSE, warning=FALSE}
+# Select Bangladesh for analysis.
+bangladeshExports <- global_economy %>%
+  filter(Code == 'BGD')
+head(bangladeshExports)
+```
+
+
 **(a) Plot the Exports series and discuss the main features of the data**.
+
+```{r 8.5a, eval=TRUE, message=FALSE, warning=FALSE}
+# Plot the series.
+bangladeshExports %>%
+  autoplot(Exports)  +
+  labs(title = 'Bangladesh Annual Exports')
+```
+
+_The series displays a general downward trend from 1960 to 1975, and then displays a more or less steady upward trend until around 2012 where exports begin to drop again._
 
 
 **(b) Use an ETS(A,N,N) model to forecast the series, and plot the forecasts**.
+```{r 8.5b, eval=TRUE, message=FALSE, warning=FALSE}
+fit <- bangladeshExports %>%
+  model(ANN = ETS(Exports ~ error('A') + trend('N') + season('N')))
+
+bangladeshExportsForecast <- fit %>%
+  forecast(h = 4)
+
+bangladeshExportsForecast %>% autoplot(bangladeshExports) +
+  labs(title = 'Bangladesh Annual Exports Forecast')
+```
 
 
 **(c) Compute the RMSE values for the training data**.
+```{r 8.5c, eval=TRUE, message=FALSE, warning=FALSE}
+accuracy(fit)
+```
 
+
+_The RMSE value for the training data is **1.253158**_.
 
 **(d) Compare the results to those from an ETS(A,A,N) model. (Remember that the trended model is using one more parameter than the simpler model.) Discuss the merits of the two forecasting methods for this data set**.
+```{r 8.5d, eval=TRUE, message=FALSE, warning=FALSE}
+modelComparison <- bangladeshExports %>%
+  model(
+    ANN = ETS(Exports ~ error('A') + trend('N') + season('N')),
+    AAN = ETS(Exports ~ error('A') + trend('A') + season('N'))
+  )
+
+accuracy(modelComparison)
+```
+
+_The AAN model results in a slightly lower RMSE which would suggest that it is a more accurate model for this data_.
 
 
 **(e) Compare the forecasts from both methods. Which do you think is best**?
+```{r 8.5e, eval=TRUE, message=FALSE, warning=FALSE}
+modelComparison %>%
+  forecast(h = 4) %>%
+  autoplot(bangladeshExports, level = NULL) +
+  labs(title = 'Bangladesh Annual Exports ANN Vs AAN Forecast Model Comparison')
+```
+
+_From the above forecast chart, it looks like the AAN model is better for forcasting this data. The ANN forcast shows a leveling off of the data which does not fit the overal trend of the data. The AAN model shows an upward trend in the data which is sits better with the existing data_.
 
 
 **(f) Calculate a 95% prediction interval for the first forecast for each model, using the RMSE values and assuming normal errors. Compare your intervals with those produced using R**.
+```{r 8.5f, eval=TRUE, message=FALSE, warning=FALSE}
+standardDeviation <- modelComparison %>%
+  select(Country, AAN) %>%
+  accuracy() %>%
+  transmute(Country, standardDeviation = RMSE)
+
+modelComparison %>%
+  select(Country, AAN) %>%
+  forecast(h = 1) %>%
+  left_join(standardDeviation, by = 'Country') %>%
+  mutate(lowerCi = Exports - 1.96 * standardDeviation,
+         upperCi = Exports + 1.96 * standardDeviation) %>%
+  select(Country, Exports, lowerCi, upperCi)
+```
+
 
 \ 
 

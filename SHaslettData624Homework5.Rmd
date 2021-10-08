@@ -205,10 +205,81 @@ Forecast the Chinese GDP from the _global_economy_ data set using an ETS model. 
 
 [Hint: use a relatively large value of _h_ when forecasting, so you can clearly see the differences between the various options when plotting the forecasts.]
 
+```{r 8.6, eval=TRUE, message=FALSE, warning=FALSE}
+# Disable scientific numbers for readability purposes.
+options(scipen = 999)
+
+# Extract Chinese GDP data from the global_economy dataset.
+chineseGDP <- global_economy %>%
+  filter(Country == 'China')
+
+# Create a plot of the data.
+chineseGDP %>% autoplot(GDP) +
+  labs(title = 'Chinese GDP')
+```
+
+
+
+** Experiment with the various options in the ETS() function to see how much the forecasts change with damped trend, or with a Box-Cox transformation.**
+
+```{r 8.6ETSExperiments, eval=TRUE, message=FALSE, warning=FALSE}
+# Get the optimized lambda value for BoxCox transformations.
+lambda <- chineseGDP %>%
+  features(GDP, features = guerrero) %>%
+  pull(lambda_guerrero)
+
+
+# Experiment with various ETS() options.
+chineseGDPEtsOptionsComparision <- chineseGDP %>%
+  model(
+    ETS = ETS(GDP),
+    ETSBoxCox = ETS(box_cox(GDP, lambda)),
+    ETSDamped = ETS(GDP ~ trend('Ad', phi = 0.9)),
+    ETSLog = ETS(log(GDP))
+  )
+
+chineseGDPEtsOptionsComparision %>%
+  forecast(h = '20 years') %>%
+  autoplot(chineseGDP, level = NULL) +
+  labs(title = 'Chinese GDP ETS Forecast Options Comparison')
+```
+
+
 \ 
 
 ### Exercise 8.7
 Find an ETS model for the Gas data from _aus_production_ and forecast the next few years. Why is multiplicative seasonality necessary here? Experiment with making the trend damped. Does it improve the forecasts?
+```{r 8.7, eval=TRUE, message=FALSE, warning=FALSE}
+# Plot the data.
+aus_production %>%
+  autoplot(Gas)
+
+# Create an ETS model.
+fit <- aus_production %>%
+  model(fit = ETS(Gas))
+report(fit)
+
+fit %>%
+  forecast(h = '4 years') %>%
+  autoplot(aus_production)
+```
+
+**Why is multiplicative seasonality necessary here?**
+
+_multiplicative seasonality is necessary due to the fact that the seasonal variation trends upwards over time_.
+
+
+**Experiment with making the trend damped. Does it improve the forecasts?**
+```{r 8.7Damped, eval=TRUE, message=FALSE, warning=FALSE}
+# Make the trend damped.
+fit <- aus_production %>%
+  model(fit = ETS(Gas  ~ trend('Ad', phi = 0.9)))
+report(fit)
+
+fit %>%
+  forecast(h = '4 years') %>%
+  autoplot(aus_production)
+```
 
 \ 
 

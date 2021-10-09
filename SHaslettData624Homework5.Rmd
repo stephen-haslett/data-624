@@ -239,7 +239,7 @@ chineseGDPEtsOptionsComparision <- chineseGDP %>%
   )
 
 chineseGDPEtsOptionsComparision %>%
-  forecast(h = '20 years') %>%
+  forecast(h = 20) %>%
   autoplot(chineseGDP, level = NULL) +
   labs(title = 'Chinese GDP ETS Forecast Options Comparison')
 ```
@@ -260,7 +260,7 @@ fit <- aus_production %>%
 report(fit)
 
 fit %>%
-  forecast(h = '4 years') %>%
+  forecast(h = 4) %>%
   autoplot(aus_production)
 ```
 
@@ -274,25 +274,57 @@ _multiplicative seasonality is necessary due to the fact that the seasonal varia
 # Make the trend damped.
 fit <- aus_production %>%
   model(fit = ETS(Gas  ~ trend('Ad', phi = 0.9)))
-report(fit)
 
 fit %>%
-  forecast(h = '4 years') %>%
+  forecast(h = 4) %>%
   autoplot(aus_production)
 ```
+
+_Comparing the damped and non damped trend plots above, making the trend damped does not appear to improve the forecast_.
 
 \ 
 
 ### Exercise 8.8
 Recall your retail time series data (from Exercise 8 in Section 2.10).
+```{r 8.8Exercise2.8}
+set.seed(7777777)
+myseries <- aus_retail %>%
+  filter(`Series ID` == sample(aus_retail$`Series ID`, 1))
+
+myseries %>% autoplot(Turnover)
+```
 
 **(a) Why is multiplicative seasonality necessary for this series**?
 
 **(b) Apply Holt-Winters’ multiplicative method to the data. Experiment with making the trend damped**.
+```{r 8.8B, eval=TRUE, message=FALSE, warning=FALSE}
+fit <- myseries %>%
+  model(
+    'Holt Winters Multiplicative Method' = ETS(Turnover ~ error('M') + trend('A') + season('M')),
+    'Holt Winters Damped Method' = ETS(Turnover ~ error('M') + trend('Ad') + season('M'))
+  )
+
+HoltWinters <- fit %>% forecast(h = 10)
+
+HoltWinters %>% autoplot(myseries, level = NULL)
+```
+
 
 **(c) Compare the RMSE of the one-step forecasts from the two methods. Which do you prefer**?
+```{r 8.8C, eval=TRUE, message=FALSE, warning=FALSE}
+accuracy(fit) %>% select('.model', 'RMSE')
+```
+
+_The forcast with damped applied has a slightly lower RMSE than that of the multiplicative method suggesting that this would be the more accurate choice for the time series_.
 
 **(d) Check that the residuals from the best method look like white noise**.
+```{r 8.8D, eval=TRUE, message=FALSE, warning=FALSE}
+fit %>%
+  select('Holt Winters Damped Method') %>%
+  gg_tsresiduals()
+```
+
+_Both the risiduals plot and historgram above confirm that the residuals for the damped method look like white noise with the execption of a few outliers. The ACF confirms that most of the risiduals are within bounds._
 
 **(e) Now find the test set RMSE, while training the model to the end of 2010. Can you beat the seasonal naïve approach from Exercise 7 in Section 5.11**?
 

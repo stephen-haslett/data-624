@@ -317,16 +317,16 @@ HoltWinters %>% autoplot(myseries, level = NULL)
 accuracy(fit) %>% select('.model', 'RMSE')
 ```
 
-_The forcast with damped applied has a slightly lower RMSE than that of the multiplicative method suggesting that this would be the more accurate choice for the time series_.
+_The multiplicative method has a slightly lower RMSE than that of the damped method suggesting that this may be the more accurate choice for the time series_.
 
 **(d) Check that the residuals from the best method look like white noise**.
 ```{r 8.8D, eval=TRUE, message=FALSE, warning=FALSE}
 fit %>%
-  select('Holt Winters Damped Method') %>%
+  select('Holt Winters Multiplicative Method') %>%
   gg_tsresiduals()
 ```
 
-_Both the risiduals plot and historgram above confirm that the residuals for the damped method look like white noise with the execption of a few outliers. The ACF confirms that most of the risiduals are within bounds._
+_Both the risiduals plot and historgram above confirm that the residuals for the multiplicative method look like white noise with the execption of a few outliers. The ACF confirms that most of the risiduals are within bounds._
 
 **(e) Now find the test set RMSE, while training the model to the end of 2010. Can you beat the seasonal naïve approach from Exercise 7 in Section 5.11**?
 ```{r 8.8E, eval=TRUE, message=FALSE, warning=FALSE}
@@ -348,9 +348,37 @@ autoplot(comparison, Turnover) +
   labs(title = 'Forecast Method Comparison')
 ```
 
-_The above method comparison plot proves that both the Holt Winters Damped and Multiplicative methods beat the Seasonal Niave method_.
+_The above method comparison plot proves that both the Holt Winters Damped and Multiplicative methods beat the Seasonal Niave method, and that the Multiplicative method is the most accurate_.
 
 \ 
 
 ### Exercise 8.9
 For the same retail data, try an STL decomposition applied to the Box-Cox transformed series, followed by ETS on the seasonally adjusted data. How does that compare with your best previous forecasts on the test set?
+```{r 8.9, eval=TRUE, message=FALSE, warning=FALSE}
+# Get the optimized lambda value for BoxCox transformations.
+lambda <- myseries_train %>%
+  features(Turnover, features = guerrero) %>%
+  pull(lambda_guerrero)
+
+training_boxcox <- myseries_train %>%
+  mutate(
+    bc = box_cox(Turnover, lambda)
+  )
+
+fit <- training_boxcox %>%
+  model(
+    'STL Box-Cox' = STL(bc ~ season(window = 'periodic'), robust = TRUE),
+    'ETS Box-Cox' = ETS(bc)
+  )
+
+multiplicative_best_fit <- training_boxcox %>%
+  model(
+    'Holt Winters Multiplicative Method' = ETS(Turnover ~ error('M') + trend('A') + season('M'))
+  )
+
+accuracy(fit)
+accuracy(multiplicative_best_fit)
+```
+
+
+_Looking at the RMSE values of the STL and ETS Box-Cox methods (**0.04560738**, and **0.04964458** respectively), we can see that both these methods are more accurate than our previous most accurate 'Holt Winters Multiplicative' method that has an RMSE of **0.6450982**_.

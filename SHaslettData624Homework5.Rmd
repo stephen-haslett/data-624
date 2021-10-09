@@ -296,6 +296,8 @@ myseries %>% autoplot(Turnover)
 
 **(a) Why is multiplicative seasonality necessary for this series**?
 
+_Multiplicative seasonality is necessary for this series as the magnitude of the seasonalilty fluctuation increases over time_.
+
 **(b) Apply Holt-Winters’ multiplicative method to the data. Experiment with making the trend damped**.
 ```{r 8.8B, eval=TRUE, message=FALSE, warning=FALSE}
 fit <- myseries %>%
@@ -327,6 +329,26 @@ fit %>%
 _Both the risiduals plot and historgram above confirm that the residuals for the damped method look like white noise with the execption of a few outliers. The ACF confirms that most of the risiduals are within bounds._
 
 **(e) Now find the test set RMSE, while training the model to the end of 2010. Can you beat the seasonal naïve approach from Exercise 7 in Section 5.11**?
+```{r 8.8E, eval=TRUE, message=FALSE, warning=FALSE}
+myseries_train <- myseries %>%
+  filter(year(Month) < 2011)
+
+fit <- myseries_train %>%
+  model(
+    'Holt Winters Multiplicative Method' = ETS(Turnover ~ error('M') + trend('A') + season('M')),
+    'Holt Winters Damped Method' = ETS(Turnover ~ error('M') + trend('Ad') + season('M')),
+    'Seasonal Naive' = SNAIVE(Turnover)
+  )
+
+comparison <- anti_join(myseries, myseries_train, by = c('State', 'Industry', 'Series ID', 'Month', 'Turnover'))
+forecastResults <- fit %>% forecast(comparison)
+
+autoplot(comparison, Turnover) +
+  autolayer(forecastResults, level = NULL) +
+  labs(title = 'Forecast Method Comparison')
+```
+
+_The above method comparison plot proves that both the Holt Winters Damped and Multiplicative methods beat the Seasonal Niave method_.
 
 \ 
 

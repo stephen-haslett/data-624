@@ -1,0 +1,120 @@
+---
+title: "Data 624 Homework 6"
+subtitle: "Week 8 ARIMA"
+author: "Stephen Haslett"
+date: "10/15/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(corrplot)
+library(caret)
+library(tidyr)
+library(dplyr)
+library(mice)
+library(kableExtra)
+library(mlbench)
+library(forecast)
+library(fpp3)
+library(DT)
+library(feasts)
+library(seasonal)
+library(tsibble)
+library(lubridate)
+```
+
+### Exercise 9.1
+Figure 9.32 shows the ACFs for 36 random numbers, 360 random numbers and 1,000 random numbers.
+
+![](images/hwk6-fig9.32.png)
+
+
+**(a) Explain the differences among these figures. Do they all indicate that the data are white noise**? 
+
+
+**(b) Why are the critical values at different distances from the mean of zero? Why are the autocorrelations different in each figure when they each refer to white noise**? 
+
+
+\ 
+
+### Exercise 9.2
+A classic example of a non-stationary series are stock prices. Plot the daily closing prices for Amazon stock (contained in gafa_stock), along with the ACF and PACF. Explain how each plot shows that the series is non-stationary and should be differenced.
+
+```{r 9.2, eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+
+\ 
+
+### Exercise 9.3
+For the following series, find an appropriate Box-Cox transformation and order of differencing in order to obtain stationary data.
+
+
+**(a) Turkish GDP from _global_economy_**.
+
+
+**(b) Accommodation takings in the state of Tasmania from _aus_accommodation_**.
+
+
+**(c) Monthly sales from _souvenirs_**.
+
+
+\ 
+
+### Exercise 9.5
+For your retail data (from Exercise 8 in Section 2.10), find the appropriate order of differencing (after transformation if necessary) to obtain stationary data.
+
+\ 
+
+### Exercise 9.6
+Simulate and plot some data from simple ARIMA models.
+
+
+**(a) Use the following R code to generate data from an AR(1) model with  ϕ1 = 0.6 and  σ2 = 1. The process starts with y1 = 0**.
+
+```{r 9.6A, eval=TRUE, message=FALSE, warning=FALSE}
+y <- numeric(100)
+e <- rnorm(100)
+for(i in 2:100)
+  y[i] <- 0.6*y[i-1] + e[i]
+sim <- tsibble(idx = seq_len(100), y = y, index = idx)
+```
+
+
+**(b) Produce a time plot for the series. How does the plot change as you change ϕ1**?
+
+
+**(c) Write your own code to generate data from an MA(1) model with θ1 = 0.6 and σ2 = 1**.
+
+
+**(d) Produce a time plot for the series. How does the plot change as you change θ1**?
+
+
+**(e) Generate data from an ARMA(1,1) model with ϕ1 = 0.6, θ1 = 0.6 and σ2 = 1**.
+
+
+**(g) Graph the latter two series and compare them**.
+
+
+\ 
+
+### Exercise 9.7
+Consider _aus_airpassengers_, the total number of passengers (in millions) from Australian air carriers for the period 1970-2011.
+
+
+**(a) Use _ARIMA()_ to find an appropriate ARIMA model. What model was selected. Check that the residuals look like white noise. Plot forecasts for the next 10 periods**.
+
+
+**(b) Write the model in terms of the backshift operator**.
+
+
+**(c) Plot forecasts from an _ARIMA(0,1,0)_ model with drift and compare these to part a**.
+
+
+**(d) Plot forecasts from an _ARIMA(2,1,2)_ model with drift and compare these to parts a and c. Remove the constant and see what happens**.
+
+
+**(e) Plot forecasts from an ARIMA(0,2,1) model with a constant. What happens**?
+ 
+ 

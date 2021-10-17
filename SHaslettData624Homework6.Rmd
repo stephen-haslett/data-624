@@ -30,11 +30,13 @@ Figure 9.32 shows the ACFs for 36 random numbers, 360 random numbers and 1,000 r
 ![](images/hwk6-fig9.32.png)
 
 
-**(a) Explain the differences among these figures. Do they all indicate that the data are white noise**? 
+**(a) Explain the differences among these figures. Do they all indicate that the data are white noise**?
 
+As the number of random numbers increases, the ACF boundaries become narrower. Each of the above ACF plots tell us that the data are white noise because over 95% of the lag data for each chart fall within the ACF boundaries.  
 
 **(b) Why are the critical values at different distances from the mean of zero? Why are the autocorrelations different in each figure when they each refer to white noise**? 
 
+The critical values are at different distances from the mean of zero due to the law of large numbers. As the number of observations increase, the number of outliers from the mean decreases. Additionally, the autocorrelations are different in each figure due to the fact that the series are composed of random numbers. As a result, the autocorrelations wull also shoe signs of randomness.
 
 \ 
 

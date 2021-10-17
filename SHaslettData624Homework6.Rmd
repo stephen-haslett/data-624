@@ -44,8 +44,12 @@ The critical values are at different distances from the mean of zero due to the 
 A classic example of a non-stationary series are stock prices. Plot the daily closing prices for Amazon stock (contained in gafa_stock), along with the ACF and PACF. Explain how each plot shows that the series is non-stationary and should be differenced.
 
 ```{r 9.2, eval=TRUE, message=FALSE, warning=FALSE}
+ggtsdisplay(gafa_stock$Close)
+acf_results <- acf(gafa_stock$Close, plot = FALSE)
+acf_results
 ```
 
+The above ACF plot shows us that the autocorrelation values decrease over time (_we can confirm this observation by looking at the results of calling the acf() function on the data_). Both the ACF and PACF plots seem to display seasonality and most of the lags fall outside of the boundaries suggesting that the data is not white noise. Additionally, the series graph shows an upward trend in the data, followed by a sharp drop, and then a conitnued upward trend further suggesting that this is a non-stationary series.
 
 \ 
 
@@ -55,12 +59,22 @@ For the following series, find an appropriate Box-Cox transformation and order o
 
 **(a) Turkish GDP from _global_economy_**.
 
+```{r 9.3A, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
+
 
 **(b) Accommodation takings in the state of Tasmania from _aus_accommodation_**.
 
+```{r 9.3B, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
 
 **(c) Monthly sales from _souvenirs_**.
 
+```{r 9.3C, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
 
 \ 
 

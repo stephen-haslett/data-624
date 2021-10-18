@@ -60,19 +60,52 @@ For the following series, find an appropriate Box-Cox transformation and order o
 **(a) Turkish GDP from _global_economy_**.
 
 ```{r 9.3A, eval=TRUE, message=FALSE, warning=FALSE}
+# Extract Turkish GDP data from the global_economy dataset.
+turkishGDP <- global_economy %>% filter(Country == 'Turkey')
+ggtsdisplay(turkishGDP$GDP)
 
+# BoxCox and difference the data.
+BoxCoxedData <- BoxCox(turkishGDP$GDP, lambda = BoxCox.lambda(turkishGDP$GDP))
+DifferencedData <- diff(BoxCoxedData)
+
+# Explore the data after BoxCoxing and differencing to check for improvement.
+ggtsdisplay(DifferencedData)
 ```
 
 
 **(b) Accommodation takings in the state of Tasmania from _aus_accommodation_**.
 
 ```{r 9.3B, eval=TRUE, message=FALSE, warning=FALSE}
+# Extract Tasmania Accomodation Takings data from the aus_accommodation dataset.
+tasmaniaAccomodationTakings <- aus_accommodation %>% filter(State == 'Tasmania')
 
+# Explore the data before BoxCoxing and differencing.
+ggtsdisplay(tasmaniaAccomodationTakings$Takings)
+
+# BoxCox and difference the data.
+TasmaniaBoxCoxedData <- BoxCox(tasmaniaAccomodationTakings$Takings, lambda = BoxCox.lambda(tasmaniaAccomodationTakings$Takings))
+TasmaniaDifferencedData <- diff(TasmaniaBoxCoxedData)
+
+# Explore the data after BoxCoxing and differencing to check for improvement.
+ggtsdisplay(TasmaniaDifferencedData)
 ```
+
 
 **(c) Monthly sales from _souvenirs_**.
 
 ```{r 9.3C, eval=TRUE, message=FALSE, warning=FALSE}
+# Extract the sales data from the souvenirs dataset.
+souvenirSales <- souvenirs$Sales
+
+# Explore the data before BoxCoxing and differencing.
+ggtsdisplay(souvenirSales)
+
+# BoxCox and difference the data.
+SalesBoxCoxedData <- BoxCox(souvenirSales, lambda = BoxCox.lambda(souvenirSales))
+SalesDifferencedData <- diff(SalesBoxCoxedData)
+
+# Explore the data after BoxCoxing and differencing to check for improvement.
+ggtsdisplay(SalesDifferencedData)
 
 ```
 
@@ -80,6 +113,15 @@ For the following series, find an appropriate Box-Cox transformation and order o
 
 ### Exercise 9.5
 For your retail data (from Exercise 8 in Section 2.10), find the appropriate order of differencing (after transformation if necessary) to obtain stationary data.
+
+```{r 9.5, eval=TRUE, message=FALSE, warning=FALSE}
+# TODO: FINISH THIS.
+myseries <- aus_retail %>%
+  filter(`Series ID` == sample(aus_retail$`Series ID`, 1))
+
+autoplot(myseries)
+
+```
 
 \ 
 
@@ -95,23 +137,63 @@ e <- rnorm(100)
 for(i in 2:100)
   y[i] <- 0.6*y[i-1] + e[i]
 sim <- tsibble(idx = seq_len(100), y = y, index = idx)
+autoplot(sim) 
 ```
 
 
 **(b) Produce a time plot for the series. How does the plot change as you change ϕ1**?
 
+```{r 9.6B, eval=TRUE, message=FALSE, warning=FALSE}
+ar1_model_simulation <- function(phi1_value) {
+  y <- ts(numeric(100))
+  e <- rnorm(100)
+  for (i in 2:100){
+    y[i] <- phi1_value*y[i-1] + e[i]
+  }
+  return(y)
+}
+
+autoplot(ar1_model_simulation(0.1), series = '0.3') + 
+  autolayer(ar1_model_simulation(0.6), series = '0.6') + 
+  autolayer(ar1_model_simulation(0.9), series = '0.9')
+```
+
+
+As the value of ϕ1 is increased, the chart variation becomes more dispersed.
+
 
 **(c) Write your own code to generate data from an MA(1) model with θ1 = 0.6 and σ2 = 1**.
 
+```{r 9.6C, eval=TRUE, message=FALSE, warning=FALSE}
+ma1_model_simulation <- function(theta1_value) {
+  y <- ts(numeric(100))
+  e <- rnorm(100)
+  for (i in 2:100) {
+    y[i] <- theta1_value*e[i-1] + e[i]
+  }
+  return(y)
+}
+```
 
 **(d) Produce a time plot for the series. How does the plot change as you change θ1**?
 
+```{r 9.6D, eval=TRUE, message=FALSE, warning=FALSE}
+autoplot(ma1_model_simulation(0.1), series = '0.3') + 
+  autolayer(ma1_model_simulation(0.6), series = '0.6') + 
+  autolayer(ma1_model_simulation(0.9), series = '0.9')
+```
+
+As the value of θ1 is increased, the variation of Y is increased also.
 
 **(e) Generate data from an ARMA(1,1) model with ϕ1 = 0.6, θ1 = 0.6 and σ2 = 1**.
 
+```{r 9.6E, eval=TRUE, message=FALSE, warning=FALSE}
+```
 
 **(g) Graph the latter two series and compare them**.
 
+```{r 9.6G, eval=TRUE, message=FALSE, warning=FALSE}
+```
 
 \ 
 

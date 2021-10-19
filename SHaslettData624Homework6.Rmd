@@ -223,16 +223,65 @@ Consider _aus_airpassengers_, the total number of passengers (in millions) from 
 
 **(a) Use _ARIMA()_ to find an appropriate ARIMA model. What model was selected. Check that the residuals look like white noise. Plot forecasts for the next 10 periods**.
 
+```{r 9.7A, eval=TRUE, message=FALSE, warning=FALSE}
+# Run the series through the ARIMA() function and have it automatically select an appropriate ARIMA model. 
+arimaAirPassengers <- aus_airpassengers %>%
+  model(ARIMA(Passengers))
+
+# Print out the results of the selection. 
+arimaAirPassengers
+```
+
+Running the _aus_airpassengers_ series through the _ARIMA()_ function using the default stepwise procedure, results in an **_ARIMA(0,2,1)_** model being selected. A quick glance of the model reveals that it has a fairly low AICc value of **198.** telling us that it is a good fit.
+
+```{r 9.7AGlance, eval=TRUE, message=FALSE, warning=FALSE}
+glance(arimaAirPassengers)
+```
+
+Next we will check that the residuals look like white noise.
+
+```{r 9.7AWhiteNoise, eval=TRUE, message=FALSE, warning=FALSE}
+# Plot the residuals to check for white noise. 
+gg_tsresiduals(arimaAirPassengers)
+
+# Perform a portmanteau test on the residuals.
+augment(arimaAirPassengers) %>%
+  filter(.model == 'ARIMA(Passengers)') %>%
+  features(.innov, ljung_box, lag = 10, dof = 3)
+
+```
+
+The ACF plot of the residuals above reveals that all of the autocorrelations are within the thereshold limits which confirms that the residuals are white noise. The high P value of **0.4611594** returned by the __portmanteau test__ futher confirms this so we will go ahead and plot forecasts for the next 10 periods.
+
+```{r 9.7AForecast, eval=TRUE, message=FALSE, warning=FALSE}
+# Plot forecasts on the time series for the next 10 periods.
+arimaAirPassengers %>%
+  forecast(h = 10) %>%
+  autoplot(aus_airpassengers) +
+  labs(title = 'Australian Air Passengers Forecast Plot')
+```
+
 
 **(b) Write the model in terms of the backshift operator**.
 
+```{r 9.7B, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
 
 **(c) Plot forecasts from an _ARIMA(0,1,0)_ model with drift and compare these to part a**.
 
+```{r 9.7C, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
 
 **(d) Plot forecasts from an _ARIMA(2,1,2)_ model with drift and compare these to parts a and c. Remove the constant and see what happens**.
 
+```{r 9.7D, eval=TRUE, message=FALSE, warning=FALSE}
+
+```
 
 **(e) Plot forecasts from an ARIMA(0,2,1) model with a constant. What happens**?
  
- 
+```{r 9.7E, eval=TRUE, message=FALSE, warning=FALSE}
+
+```

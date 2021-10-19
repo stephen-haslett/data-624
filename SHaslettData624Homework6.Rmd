@@ -36,7 +36,7 @@ As the number of random numbers increases, the ACF boundaries become narrower. E
 
 **(b) Why are the critical values at different distances from the mean of zero? Why are the autocorrelations different in each figure when they each refer to white noise**? 
 
-The critical values are at different distances from the mean of zero due to the law of large numbers. As the number of observations increase, the number of outliers from the mean decreases. Additionally, the autocorrelations are different in each figure due to the fact that the series are composed of random numbers. As a result, the autocorrelations wull also shoe signs of randomness.
+The critical values are at different distances from the mean of zero due to the law of large numbers. As the number of observations increase, the number of outliers from the mean decreases. Additionally, the autocorrelations are different in each figure due to the fact that the series are composed of random numbers. As a result, the autocorrelations will also show signs of randomness.
 
 \ 
 
@@ -49,7 +49,7 @@ acf_results <- acf(gafa_stock$Close, plot = FALSE)
 acf_results
 ```
 
-The above ACF plot shows us that the autocorrelation values decrease over time (_we can confirm this observation by looking at the results of calling the acf() function on the data_). Both the ACF and PACF plots seem to display seasonality and most of the lags fall outside of the boundaries suggesting that the data is not white noise. Additionally, the series graph shows an upward trend in the data, followed by a sharp drop, and then a conitnued upward trend further suggesting that this is a non-stationary series.
+The above ACF plot shows us that the autocorrelation values decrease over time (_we can confirm this observation by looking at the results of calling the acf() function on the data_). Both the ACF and PACF plots seem to display seasonality and most of the lags fall outside of the boundaries suggesting that the data is not white noise. Additionally, the series graph shows an upward trend in the data, followed by a sharp drop, and then a continued upward trend further suggesting that this is a non-stationary series.
 
 \ 
 
@@ -251,7 +251,7 @@ augment(arimaAirPassengers) %>%
 
 ```
 
-The ACF plot of the residuals above reveals that all of the autocorrelations are within the thereshold limits which confirms that the residuals are white noise. The high P value of **0.4611594** returned by the __portmanteau test__ futher confirms this so we will go ahead and plot forecasts for the next 10 periods.
+The ACF plot of the residuals above reveals that all of the autocorrelations are within the thereshold limits which confirms that the residuals are white noise. The high P value of **0.4611594** returned by the __portmanteau test__ further confirms this so we will go ahead and plot forecasts for the next 10 periods.
 
 ```{r 9.7AForecast, eval=TRUE, message=FALSE, warning=FALSE}
 # Plot forecasts on the time series for the next 10 periods.
@@ -261,6 +261,9 @@ arimaAirPassengers %>%
   labs(title = 'Australian Air Passengers Forecast Plot')
 ```
 
+The forecast for the time series follows the general upward trend of the data.
+
+\ 
 
 **(b) Write the model in terms of the backshift operator**.
 

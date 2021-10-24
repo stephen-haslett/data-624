@@ -313,6 +313,11 @@ autoplot(arima010AirPassengersDrift) +
   labs(title = 'ARIMA(0,1,0) Model With Drift Forecast Plot')
 ```
 
+
+**Answer:**
+
+Dropping the constant results in a forecast that is less steep than the forecast in part a (_Australian Air Passengers Forecast Plot_), and a reduction in confidence intervals.   
+
 **(d) Plot forecasts from an _ARIMA(2,1,2)_ model with drift and compare these to parts a and c. Remove the constant and see what happens**.
 
 ```{r 9.7D, eval=TRUE, message=FALSE, warning=FALSE}
@@ -345,3 +350,8 @@ arima021AirPassengersConstant <- forecast(Arima(aus_airpassengers$Passengers, or
 autoplot(arima021AirPassengersConstant) +
   labs(title = 'ARIMA(0,2,1) Model With Constant Forecast Plot')
 ```
+
+
+**Answer:**
+
+The forecast now better resembles the original "_Australian Air Passengers Forecast_" plot in part a.

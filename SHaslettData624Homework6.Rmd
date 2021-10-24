@@ -36,9 +36,13 @@ Figure 9.32 shows the ACFs for 36 random numbers, 360 random numbers and 1,000 r
 
 **(a) Explain the differences among these figures. Do they all indicate that the data are white noise**?
 
-As the number of random numbers increases, the ACF boundaries become narrower. Each of the above ACF plots tell us that the data are white noise because over 95% of the lag data for each chart fall within the ACF boundaries.  
+**Answer:**
+
+As the number of random numbers increases, the ACF boundaries become narrower. Each of the above ACF plots tell us that the data are white noise because over 95% of the lag data for each chart falls within the ACF boundaries.  
 
 **(b) Why are the critical values at different distances from the mean of zero? Why are the autocorrelations different in each figure when they each refer to white noise**? 
+
+**Answer:**
 
 The critical values are at different distances from the mean of zero due to the law of large numbers. As the number of observations increase, the number of outliers from the mean decreases. Additionally, the autocorrelations are different in each figure due to the fact that the series are composed of random numbers. As a result, the autocorrelations will also show signs of randomness.
 
@@ -52,6 +56,8 @@ ggtsdisplay(gafa_stock$Close)
 acf_results <- acf(gafa_stock$Close, plot = FALSE)
 acf_results
 ```
+
+**Answer:**
 
 The above ACF plot shows us that the autocorrelation values decrease over time (_we can confirm this observation by looking at the results of calling the acf() function on the data_). Both the ACF and PACF plots seem to display seasonality and most of the lags fall outside of the boundaries suggesting that the data is not white noise. Additionally, the series graph shows an upward trend in the data, followed by a sharp drop, and then a continued upward trend further suggesting that this is a non-stationary series.
 
@@ -122,7 +128,7 @@ For your retail data (from Exercise 8 in Section 2.10), find the appropriate ord
 # TODO: FINISH THIS.
 myseries <- aus_retail %>%
   filter(`Series ID` == sample(aus_retail$`Series ID`, 1))
-myseries
+
 myseries %>%
   mutate(diff_close = difference(Turnover)) %>%
   features(diff_close, ljung_box, lag = 10)
@@ -166,6 +172,7 @@ autoplot(ar1_model_simulation(0.1), series = '0.3') +
   autolayer(ar1_model_simulation(0.9), series = '0.9')
 ```
 
+**Answer:**
 
 As the value of ϕ1 is increased, the chart variation becomes more dispersed.
 
@@ -190,6 +197,8 @@ autoplot(ma1_model_simulation(0.1), series = '0.3') +
   autolayer(ma1_model_simulation(0.6), series = '0.6') + 
   autolayer(ma1_model_simulation(0.9), series = '0.9')
 ```
+
+**Answer:**
 
 As the value of θ1 is increased, the variation of Y is increased also.
 
@@ -228,7 +237,6 @@ autoplot(y1, series = 'ARMA(1,1)') +
 ### Exercise 9.7
 Consider _aus_airpassengers_, the total number of passengers (in millions) from Australian air carriers for the period 1970-2011.
 
-
 **(a) Use _ARIMA()_ to find an appropriate ARIMA model. What model was selected. Check that the residuals look like white noise. Plot forecasts for the next 10 periods**.
 
 ```{r 9.7A, eval=TRUE, message=FALSE, warning=FALSE}
@@ -239,6 +247,7 @@ arimaAirPassengers <- aus_airpassengers %>%
 # Print out the results of the selection. 
 arimaAirPassengers
 ```
+
 
 Running the _aus_airpassengers_ series through the _ARIMA()_ function using the default stepwise procedure, results in an **_ARIMA(0,2,1)_** model being selected. A quick glance at the model reveals that it has a fairly low AICc value of **198.** telling us that it is a good fit.
 
@@ -275,8 +284,8 @@ The forecast for the time series follows the general upward trend of the data.
 
 **(b) Write the model in terms of the backshift operator**.
 
-```{r 9.7B, eval=TRUE, message=FALSE, warning=FALSE}
-```
+**Answer:**
+$(1 − ϕ1B) (1−B)2_{yt} = c + εt$
 
 **(c) Plot forecasts from an _ARIMA(0,1,0)_ model with drift and compare these to part a**.
 
@@ -307,6 +316,9 @@ autoplot(arima212AirPassengersDrift) +
 #  labs(title = 'ARIMA(2,1,2) Model With No Constant')
 ```
 
+**Answer:**
+
+Removing the constant from the model results in a "_non-stationary AR part from CSS_" R error, and the model does not run.
 
 **(e) Plot forecasts from an ARIMA(0,2,1) model with a constant. What happens**?
  

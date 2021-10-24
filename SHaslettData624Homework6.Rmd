@@ -22,6 +22,10 @@ library(feasts)
 library(seasonal)
 library(tsibble)
 library(lubridate)
+library(ggplot2)
+library(fabletools)
+library(fable)
+library(tseries)
 ```
 
 ### Exercise 9.1
@@ -118,9 +122,13 @@ For your retail data (from Exercise 8 in Section 2.10), find the appropriate ord
 # TODO: FINISH THIS.
 myseries <- aus_retail %>%
   filter(`Series ID` == sample(aus_retail$`Series ID`, 1))
+myseries
+myseries %>%
+  mutate(diff_close = difference(Turnover)) %>%
+  features(diff_close, ljung_box, lag = 10)
+
 
 autoplot(myseries)
-
 ```
 
 \ 
@@ -232,7 +240,7 @@ arimaAirPassengers <- aus_airpassengers %>%
 arimaAirPassengers
 ```
 
-Running the _aus_airpassengers_ series through the _ARIMA()_ function using the default stepwise procedure, results in an **_ARIMA(0,2,1)_** model being selected. A quick glance of the model reveals that it has a fairly low AICc value of **198.** telling us that it is a good fit.
+Running the _aus_airpassengers_ series through the _ARIMA()_ function using the default stepwise procedure, results in an **_ARIMA(0,2,1)_** model being selected. A quick glance at the model reveals that it has a fairly low AICc value of **198.** telling us that it is a good fit.
 
 ```{r 9.7AGlance, eval=TRUE, message=FALSE, warning=FALSE}
 glance(arimaAirPassengers)
@@ -268,23 +276,43 @@ The forecast for the time series follows the general upward trend of the data.
 **(b) Write the model in terms of the backshift operator**.
 
 ```{r 9.7B, eval=TRUE, message=FALSE, warning=FALSE}
-
 ```
 
 **(c) Plot forecasts from an _ARIMA(0,1,0)_ model with drift and compare these to part a**.
 
 ```{r 9.7C, eval=TRUE, message=FALSE, warning=FALSE}
-
+# Create and forecast an ARIMA(0,1,0) model with drift.
+arima010AirPassengersDrift <- forecast(Arima(aus_airpassengers$Passengers, order = c(0, 1, 0), include.drift = TRUE))
+autoplot(arima010AirPassengersDrift) +
+  labs(title = 'ARIMA(0,1,0) Model With Drift Forecast Plot')
 ```
 
 **(d) Plot forecasts from an _ARIMA(2,1,2)_ model with drift and compare these to parts a and c. Remove the constant and see what happens**.
 
 ```{r 9.7D, eval=TRUE, message=FALSE, warning=FALSE}
-
+# Create and forecast an ARIMA(2,1,2) model with drift.
+arima212AirPassengersDrift <- forecast(Arima(aus_airpassengers$Passengers, order = c(2, 1, 2), include.constant = TRUE))
+autoplot(arima212AirPassengersDrift) +
+  labs(title = 'ARIMA(2,1,2) Model With Drift')
 ```
+
+**Remove the constant and see what happens**.
+
+```{r 9.7DRemoveConstant, eval=TRUE, message=FALSE, warning=FALSE}
+# Now remove the constant to see what happens. I have commented this code out as removing the constant results in the following error:
+# "Error in stats::arima(x = x, order = order, seasonal = seasonal, include.mean = include.mean, : non-stationary AR part from CSS".
+
+# arima212AirPassengersNoConstant <- forecast(Arima(aus_airpassengers$Passengers, order = c(2, 1, 2), include.constant = FALSE))
+# autoplot(arima212AirPassengersNoConstant) +
+#  labs(title = 'ARIMA(2,1,2) Model With No Constant')
+```
+
 
 **(e) Plot forecasts from an ARIMA(0,2,1) model with a constant. What happens**?
  
 ```{r 9.7E, eval=TRUE, message=FALSE, warning=FALSE}
-
+# Create and forecast an ARIMA(0,2,1) model with constant.
+arima021AirPassengersConstant <- forecast(Arima(aus_airpassengers$Passengers, order = c(0, 2, 1), include.constant = TRUE))
+autoplot(arima021AirPassengersConstant) +
+  labs(title = 'ARIMA(0,2,1) Model With Constant Forecast Plot')
 ```

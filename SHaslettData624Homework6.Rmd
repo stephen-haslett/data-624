@@ -125,17 +125,30 @@ ggtsdisplay(SalesDifferencedData)
 For your retail data (from Exercise 8 in Section 2.10), find the appropriate order of differencing (after transformation if necessary) to obtain stationary data.
 
 ```{r 9.5, eval=TRUE, message=FALSE, warning=FALSE}
-# TODO: FINISH THIS.
+# Load the series and plot the data.
 myseries <- aus_retail %>%
   filter(`Series ID` == sample(aus_retail$`Series ID`, 1))
 
-myseries %>%
-  mutate(diff_close = difference(Turnover)) %>%
-  features(diff_close, ljung_box, lag = 10)
-
-
-autoplot(myseries)
+autoplot(myseries) +
+  labs(title = 'Original Retail Data Plot')
 ```
+
+**Answer:**
+
+Looking at the original time series plot above, we can see that the data has an upward trend with increasing variance. This suggests that we may need to perform differencing, and Box-Cox the data to stabalize it.
+
+```{r 9.5DifferencingAnalysis, eval=TRUE, message=FALSE, warning=FALSE}
+# Check the number of differences that should be performed.
+retailData <- ts(myseries$Turnover, frequency = 12, start = c(1982, 4))
+ndiffs(retailData)
+```
+
+Running the series through the _ndiffs()_ function tells us that we need to perform 1 difference to achieve stationarity.
+
+```{r 9.5DifferencingAndBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
+kpss.test(diff(diff(BoxCox(retailData, BoxCox.lambda(retailData)), lag = 12)))
+```
+
 
 \ 
 
@@ -231,6 +244,10 @@ autoplot(y2)
 autoplot(y1, series = 'ARMA(1,1)') + 
   autolayer(y2, series = 'AR(2)') 
 ```
+
+**Answer:**
+
+From the above comparison plot, The ARMA(1,1) model appears to be stationary whilst the AR(2) model diverges exponentially. 
 
 \ 
 

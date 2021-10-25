@@ -1,0 +1,59 @@
+---
+title: "Data 624 Project 1"
+author: "Stephen Haslett"
+date: "10/25/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(corrplot)
+library(caret)
+library(tidyr)
+library(dplyr)
+library(mice)
+library(kableExtra)
+library(mlbench)
+library(forecast)
+library(fpp3)
+library(DT)
+library(feasts)
+library(seasonal)
+library(tsibble)
+library(lubridate)
+library(ggplot2)
+library(fabletools)
+library(fable)
+library(tseries)
+```
+
+### Part A – ATM Forecast
+
+#### Data Files
+_ATM624Data.xlsx_
+
+#### Objectives
+Forecast how much cash is taken out of 4 different ATM machines for May 2010. The data is given in a single file. The variable ‘Cash’ is provided in hundreds of dollars, other than that it is straight forward. Explain and demonstrate your process, techniques used and not used, and your actual forecast. Please provide your written report on your findings, visuals, discussion and your R code via an RPubs link along with the actual.rmd file. Also please submit the forecast which you will put in an Excel readable file.
+
+```{r partA, eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+
+### Part B – Forecasting Power
+
+#### Data Files
+_ResidentialCustomerForecastLoad-624.xlsx_
+
+#### Objectives
+Part B consists of a simple dataset of residential power usage for January 1998 until December 2013. Your assignment is to model these data and a monthly forecast for 2014. The data is given in a single file. The variable ‘KWH’ is power consumption in Kilowatt hours, the rest is straight forward. Add this to your existing files above. 
+
+
+### Part C – BONUS
+
+#### Data Files
+_Waterflow_Pipe1.xlsx_
+
+_Waterflow_Pipe2.xlsx_
+
+#### Objectives
+Part C consists of two data sets. These are simple 2 columns sets, however they have different time stamps. Your optional assignment is to time-base sequence the data and aggregate based on hour. Note for multiple recordings within an hour, take the mean. Then to determine if the data is stationary and can it be forecast. If so, provide a week forward forecast and present results via Rpubs and .rmd and the forecast in an Excel readable file.

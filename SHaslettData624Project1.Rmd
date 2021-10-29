@@ -39,7 +39,7 @@ Forecast how much cash is taken out of 4 different ATM machines for May 2010. Th
 
 **1. Read in the data from the data file and take a look at it's structure.**
 ```{r readAndCheckData, eval=TRUE, message=FALSE, warning=FALSE}
-# Read in the ATM dataset using the rio package's import() function..
+# Read in the ATM dataset using the rio package's import() function.
 ATMData <- import('./data/ATM624Data.xlsx', col_types = c('date', 'text', 'numeric'))
 
 # Look at the raw data.
@@ -61,7 +61,35 @@ Now that the data is in a more workable format, we can start preparing to make t
 
 Looking at the table above, we can see that the greatest amount of cash is withdrawn from **ATM4**, followed by **ATM1** and **ATM2**, with close to zero withdrawals being made from **ATM3** (_ATM3 only has 3 cash withdrawals - 96, 82, and 85 hundred dollars_).
 
+**3. To gain more insight into the data, generate summary statisitics for the data.**
+```{r summaryData, eval=TRUE, message=FALSE, warning=FALSE}
+summary(ATMData)
+```
+
+The summary stats reveal that:
+
+- **ATM1** contains **3** NA values.
+
+- **ATM2** contains **2** NA values.
+
+- **ATM4** has one major outlier, a cash withdrawal of **10919.762**. 
+
 \ 
+
+
+**4. In preparation of forecasting, convert the dataset to a timeseries and plot the results.**
+```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
+# Convert the dataset to a timeseries using the ts() function.
+ATMTimeSeries <- ts(ATMData %>% select(-DATE))
+
+# Plot the timeseries.
+ATMTimeSeries  %>%
+  autoplot()  +
+  labs(title = 'Daily Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4') +
+  ylab('Hundreds of Dollars') +
+  xlab('Day')
+```
+
 
 ### Part B – Forecasting Power
 

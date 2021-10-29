@@ -51,10 +51,10 @@ A quick inspection of the original data reveals that there are missing values so
 **2. Clean and reformat the data so that each ATM has it's own column containing the cash withdrawal amounts for that ATM.**
 ```{r cleanAndReformat, eval=TRUE, message=FALSE, warning=FALSE}
 # Drop empty values and reformat the data using the tidyr package's spread() function.
-ATMData <- ATMData %>% drop_na() %>% spread(ATM, Cash)
+ATMDataFormatted <- ATMData %>% drop_na() %>% spread(ATM, Cash)
 
 # Take a look at the reformatted data.
-paged_table(ATMData, options = list(rows.print = 30))
+paged_table(ATMDataFormatted, options = list(rows.print = 30))
 ```
 
 Now that the data is in a more workable format, we can start preparing to make the forecast.
@@ -63,7 +63,7 @@ Looking at the table above, we can see that the greatest amount of cash is withd
 
 **3. To gain more insight into the data, generate summary statisitics for the data.**
 ```{r summaryData, eval=TRUE, message=FALSE, warning=FALSE}
-summary(ATMData)
+summary(ATMDataFormatted)
 ```
 
 The summary stats reveal that:
@@ -80,16 +80,31 @@ The summary stats reveal that:
 **4. In preparation of forecasting, convert the dataset to a timeseries and plot the results.**
 ```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
 # Convert the dataset to a timeseries using the ts() function.
-ATMTimeSeries <- ts(ATMData %>% select(-DATE))
+ATMTimeSeries <- ts(ATMDataFormatted %>% select(-DATE))
 
 # Plot the timeseries.
 ATMTimeSeries  %>%
   autoplot()  +
   labs(title = 'Daily Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4') +
-  ylab('Hundreds of Dollars') +
+  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
   xlab('Day')
 ```
 
+Looking at the above plot, we can see that the major outlier for ATM4 may cause issues when forecasting data for this ATM. In order to address this, I will impute that value using the median. Additionally, I will also drop the NA values for ATM1 and ATM2.
+
+```{r outlierImputation, eval=TRUE, message=FALSE, warning=FALSE}
+# Impute ATM4's withdrawal outlier of 10919.761638 (row 1394 in the orginal dataset)
+# with the median for that ATM (taken from the summary stats above).
+ATMData[1394, 3] <- 403.839
+
+# Now drop the NA values and replot the original data.
+ATMData %>% drop_na() %>% ggplot(aes(x = DATE, y = Cash, col = ATM)) +
+  geom_line() +
+  facet_wrap(~ATM, ncol = 1, scales = 'free_y') +
+  labs(title = 'Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4', subtitle = 'May 2009 through April 2010') +
+  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
+  xlab('Date') 
+```
 
 ### Part B – Forecasting Power
 
@@ -99,7 +114,10 @@ _ResidentialCustomerForecastLoad-624.xlsx_
 #### Objectives
 Part B consists of a simple dataset of residential power usage for January 1998 until December 2013. Your assignment is to model these data and a monthly forecast for 2014. The data is given in a single file. The variable ‘KWH’ is power consumption in Kilowatt hours, the rest is straight forward. Add this to your existing files above. 
 
-```{r partB, eval=TRUE, message=FALSE, warning=FALSE}
+**1. Read in the data from the data file and take a look at it's structure.**
+```{r partBLoadData, eval=TRUE, message=FALSE, warning=FALSE}
+residentialPowerUsage <- import('./data/ResidentialCustomerForecastLoad-624.xlsx')
+paged_table(residentialPowerUsage, options = list(rows.print = 30))
 ```
 
 \ 

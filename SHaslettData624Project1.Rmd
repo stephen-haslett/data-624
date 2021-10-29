@@ -25,28 +25,56 @@ library(ggplot2)
 library(fabletools)
 library(fable)
 library(tseries)
+library(rio)
+library(rmarkdown)
 ```
 
 ### Part A – ATM Forecast
 
-#### Data Files
+#### Data File
 _ATM624Data.xlsx_
 
 #### Objectives
 Forecast how much cash is taken out of 4 different ATM machines for May 2010. The data is given in a single file. The variable ‘Cash’ is provided in hundreds of dollars, other than that it is straight forward. Explain and demonstrate your process, techniques used and not used, and your actual forecast. Please provide your written report on your findings, visuals, discussion and your R code via an RPubs link along with the actual.rmd file. Also please submit the forecast which you will put in an Excel readable file.
 
-```{r partA, eval=TRUE, message=FALSE, warning=FALSE}
+**1. Read in the data from the data file and take a look at it's structure.**
+```{r readAndCheckData, eval=TRUE, message=FALSE, warning=FALSE}
+# Read in the ATM dataset using the rio package's import() function..
+ATMData <- import('./data/ATM624Data.xlsx', col_types = c('date', 'text', 'numeric'))
+
+# Look at the raw data.
+paged_table(ATMData, options = list(rows.print = 30))
 ```
 
+A quick inspection of the original data reveals that there are missing values so we will remove these, and also reformat the data so that it is easier to work with.
+
+**2. Clean and reformat the data so that each ATM has it's own column containing the cash withdrawal amounts for that ATM.**
+```{r cleanAndReformat, eval=TRUE, message=FALSE, warning=FALSE}
+# Drop empty values and reformat the data using the tidyr package's spread() function.
+ATMData <- ATMData %>% drop_na() %>% spread(ATM, Cash)
+
+# Take a look at the reformatted data.
+paged_table(ATMData, options = list(rows.print = 30))
+```
+
+Now that the data is in a more workable format, we can start preparing to make the forecast.
+
+Looking at the table above, we can see that the greatest amount of cash is withdrawn from **ATM4**, followed by **ATM1** and **ATM2**, with close to zero withdrawals being made from **ATM3** (_ATM3 only has 3 cash withdrawals - 96, 82, and 85 hundred dollars_).
+
+\ 
 
 ### Part B – Forecasting Power
 
-#### Data Files
+#### Data File
 _ResidentialCustomerForecastLoad-624.xlsx_
 
 #### Objectives
 Part B consists of a simple dataset of residential power usage for January 1998 until December 2013. Your assignment is to model these data and a monthly forecast for 2014. The data is given in a single file. The variable ‘KWH’ is power consumption in Kilowatt hours, the rest is straight forward. Add this to your existing files above. 
 
+```{r partB, eval=TRUE, message=FALSE, warning=FALSE}
+```
+
+\ 
 
 ### Part C – BONUS
 
@@ -57,3 +85,6 @@ _Waterflow_Pipe2.xlsx_
 
 #### Objectives
 Part C consists of two data sets. These are simple 2 columns sets, however they have different time stamps. Your optional assignment is to time-base sequence the data and aggregate based on hour. Note for multiple recordings within an hour, take the mean. Then to determine if the data is stationary and can it be forecast. If so, provide a week forward forecast and present results via Rpubs and .rmd and the forecast in an Excel readable file.
+
+```{r partC, eval=TRUE, message=FALSE, warning=FALSE}
+```

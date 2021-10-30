@@ -27,6 +27,7 @@ library(fable)
 library(tseries)
 library(rio)
 library(rmarkdown)
+library(urca)
 ```
 
 ## Part A – ATM Forecast
@@ -144,7 +145,28 @@ ggtsdisplay(atmOne,
 ```
 
 The above series plot for ATM1 displays weekly seasonality. The ACF and PACF plots also contain lags that fall outside of the boundaries suggesting that the data is not white noise.
-This tells us that this is a non-stationary series.
+This tells us that this is a non-stationary series. In order to address the seasonality and variance for ATM1, we will Box-Cox the data.
+
+```{r atmOneBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
+# Perform a Box-Cox transformation on the data.
+atmOne <- BoxCox(atmOne, lambda = BoxCox.lambda(atmOne))
+ggtsdisplay(atmOne, main = 'Cash Withdrawals for ATM1 After Box-Cox Transformation')
+```
+
+Seasonality still exists after Box-Coxing the data for ATM1. However, the transformation has reduced the amount of variance in the data. In order to reduce the amount of seasonality and achieve stationarity, we will now difference the data.
+
+```{r atmOneDifferencing, eval=TRUE, message=FALSE, warning=FALSE}
+# Difference the data and then create a comparision plot so that
+# we can see the effects of differencing on the data. 
+atmOne <- diff(atmOne, lag = 7)
+ggtsdisplay(atmOne, main = 'ATM1 After Differencing')
+
+# Perform a KPSS unit root test to confirm stationarity.
+atmOneKPSSTest <- ur.kpss(atmOne)
+summary(atmOneKPSSTest)
+```
+
+As we can see from the above series plot, differencing the data has reduced seasonality considerably. Additionally, the results of the KPSS unit root test tell us that the data is now stationary as the critical value is less than 1%.
 
 \ 
 

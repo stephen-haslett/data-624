@@ -123,8 +123,13 @@ The above plot reveals the following:
 \ 
 
 #### Timeseries and Modeling
-Now that we have insight into the data, we can convert it to a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset to a time series and then we will focus on the ARIMA models for each individual ATM machine. 
+Now that we have insight into the data, we can convert it to a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset to a time series and then we will focus on the ARIMA models for each individual ATM machine.
 
+```{r finalTimeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
+# Convert the dataset to a time series.
+convertedData <- ATMData %>% spread(ATM, Cash)
+ATMDataTimeSeries <- ts(convertedData %>% select(-DATE), frequency = 7)
+```
 
 
 

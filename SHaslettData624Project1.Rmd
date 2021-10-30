@@ -29,14 +29,16 @@ library(rio)
 library(rmarkdown)
 ```
 
-### Part A – ATM Forecast
+## Part A – ATM Forecast
 
-#### Data File
-_ATM624Data.xlsx_
+**Data File**: _ATM624Data.xlsx_
 
-#### Objectives
+### Objectives
 Forecast how much cash is taken out of 4 different ATM machines for May 2010. The data is given in a single file. The variable ‘Cash’ is provided in hundreds of dollars, other than that it is straight forward. Explain and demonstrate your process, techniques used and not used, and your actual forecast. Please provide your written report on your findings, visuals, discussion and your R code via an RPubs link along with the actual.rmd file. Also please submit the forecast which you will put in an Excel readable file.
 
+\ 
+
+#### Data Analysis And Transformation
 **1. Read in the data from the data file and take a look at it's structure.**
 ```{r readAndCheckData, eval=TRUE, message=FALSE, warning=FALSE}
 # Read in the ATM dataset using the rio package's import() function.
@@ -74,10 +76,8 @@ The summary stats reveal that:
 
 - **ATM4** has one major outlier, a cash withdrawal of **10919.762**. 
 
-\ 
 
-
-**4. In preparation of forecasting, convert the dataset to a timeseries and plot the results.**
+**4. In preparation for forecasting, convert the dataset to a timeseries and plot the results so we can gain further insight into the data.**
 ```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
 # Convert the dataset to a timeseries using the ts() function.
 ATMTimeSeries <- ts(ATMDataFormatted %>% select(-DATE))
@@ -90,15 +90,21 @@ ATMTimeSeries  %>%
   xlab('Day')
 ```
 
-Looking at the above plot, we can see that the major outlier for ATM4 may cause issues when forecasting data for this ATM. In order to address this, I will impute that value using the median. Additionally, I will also drop the NA values for ATM1 and ATM2.
+Looking at the above plot, we can see that the major outlier for ATM4 may cause issues when forecasting data for this ATM. In order to address this, I will replace that value using the median for ATM4. Additionally, I will also drop the NA values for ATM1 and ATM2. There are so few NA values that I will drop the values rather than risk introducing bias by imputed them with the mean.
 
-```{r outlierImputation, eval=TRUE, message=FALSE, warning=FALSE}
-# Impute ATM4's withdrawal outlier of 10919.761638 (row 1394 in the orginal dataset)
+```{r outlierReplacement, eval=TRUE, message=FALSE, warning=FALSE}
+# Replace ATM4's withdrawal outlier of 10919.761638 (row 1394 in the orginal dataset)
 # with the median for that ATM (taken from the summary stats above).
 ATMData[1394, 3] <- 403.839
 
 # Now drop the NA values and replot the original data.
-ATMData %>% drop_na() %>% ggplot(aes(x = DATE, y = Cash, col = ATM)) +
+ATMData <- ATMData %>% drop_na()
+```
+
+In the **_Daily Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4_** plot above, The major outlier in ATM4 prevented us from getting a clear view of the other ATMs. Now that that issue has been addressed, I will replot the original data (_with our fixes applied_) so that we can get a clear view of all 4 ATMs.
+
+```{r dataReplot, eval=TRUE, message=FALSE, warning=FALSE}
+ATMData %>% ggplot(aes(x = DATE, y = Cash, col = ATM)) +
   geom_line() +
   facet_wrap(~ATM, ncol = 1, scales = 'free_y') +
   labs(title = 'Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4', subtitle = 'May 2009 through April 2010') +
@@ -106,12 +112,27 @@ ATMData %>% drop_na() %>% ggplot(aes(x = DATE, y = Cash, col = ATM)) +
   xlab('Date') 
 ```
 
-### Part B – Forecasting Power
+The above plot reveals the following:
 
-#### Data File
-_ResidentialCustomerForecastLoad-624.xlsx_
+- Replacing the outlier in **_ATM4_** with the median has tamed the data, and will hopefully result in a more accurate forecast.
 
-#### Objectives
+- There are no withdrawals from **_ATM3_** until around the end of _April 2010_. Given the limited amount of data for this ATM, we may not be able to make an accurate forecast for this machine.
+
+- **ATM2** and **ATM1** display seasonality, so we will need to Box-Cox the data in order to build a more accurate forecast model. 
+
+\ 
+
+#### Timeseries and Modeling
+Now that we have insight into the data, we can convert it to a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset to a time series and then we will focus on the ARIMA models for each individual ATM machine. 
+
+
+
+
+## Part B – Forecasting Power
+
+**Data File**: _ResidentialCustomerForecastLoad-624.xlsx_
+
+### Objectives
 Part B consists of a simple dataset of residential power usage for January 1998 until December 2013. Your assignment is to model these data and a monthly forecast for 2014. The data is given in a single file. The variable ‘KWH’ is power consumption in Kilowatt hours, the rest is straight forward. Add this to your existing files above. 
 
 **1. Read in the data from the data file and take a look at it's structure.**
@@ -122,14 +143,11 @@ paged_table(residentialPowerUsage, options = list(rows.print = 30))
 
 \ 
 
-### Part C – BONUS
+## Part C – BONUS
 
-#### Data Files
-_Waterflow_Pipe1.xlsx_
+**Data Files**: _Waterflow_Pipe1.xlsx, Waterflow_Pipe2.xlsx_
 
-_Waterflow_Pipe2.xlsx_
-
-#### Objectives
+### Objectives
 Part C consists of two data sets. These are simple 2 columns sets, however they have different time stamps. Your optional assignment is to time-base sequence the data and aggregate based on hour. Note for multiple recordings within an hour, take the mean. Then to determine if the data is stationary and can it be forecast. If so, provide a week forward forecast and present results via Rpubs and .rmd and the forecast in an Excel readable file.
 
 ```{r partC, eval=TRUE, message=FALSE, warning=FALSE}

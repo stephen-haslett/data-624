@@ -123,7 +123,7 @@ The above plot reveals the following:
 \ 
 
 #### Timeseries and Modeling
-Now that we have insight into the data, we can convert it to a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset to a time series and then we will focus on the ARIMA models for each individual ATM machine.
+Now that we have insight into the data, we can convert the dataframe into a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset to a time series and then we will focus on the ARIMA models for each individual ATM machine.
 
 ```{r finalTimeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
 # Convert the dataset to a time series.
@@ -131,7 +131,64 @@ convertedData <- ATMData %>% spread(ATM, Cash)
 ATMDataTimeSeries <- ts(convertedData %>% select(-DATE), frequency = 7)
 ```
 
+\ 
 
+##### ATM 1
+
+```{r atmOne, eval=TRUE, message=FALSE, warning=FALSE}
+atmOne <- ATMDataTimeSeries[,1]
+ggtsdisplay(atmOne,
+            main = 'Cash Withdrawals for ATM1',
+            ylab = 'Withdrawal Amount ($K)',
+            xlab = 'Week')
+```
+
+The above series plot for ATM1 displays weekly seasonality. The ACF and PACF plots also contain lags that fall outside of the boundaries suggesting that the data is not white noise.
+This tells us that this is a non-stationary series.
+
+\ 
+
+##### ATM 2
+```{r atmTwo, eval=TRUE, message=FALSE, warning=FALSE}
+atmTwo <- ATMDataTimeSeries[,2]
+ggtsdisplay(atmTwo,
+            main = 'Cash Withdrawals for ATM2',
+            ylab = 'Withdrawal Amount ($K)',
+            xlab = 'Week')
+
+```
+
+The above series plot for ATM2 displays weekly seasonality and the ACF and PACF plots contain lags outside of the boundaries telling us that the data is also not white noise.
+Additionally, ATM2 is also a non-stationary series.
+
+\ 
+
+##### ATM 3
+```{r atmThree, eval=TRUE, message=FALSE, warning=FALSE}
+atmThree <- ATMDataTimeSeries[,3]
+ggtsdisplay(atmThree,
+            main = 'Cash Withdrawals for ATM3',
+            ylab = 'Withdrawal Amount ($K)',
+            xlab = 'Week')
+
+```
+
+There is not enough data for ATM3 to make an accurate forecast model.
+
+\ 
+
+##### ATM 4
+```{r atmFour, eval=TRUE, message=FALSE, warning=FALSE}
+atmFour <- ATMDataTimeSeries[,4]
+ggtsdisplay(atmFour,
+            main = 'Cash Withdrawals for ATM4',
+            ylab = 'Withdrawal Amount ($K)',
+            xlab = 'Week')
+```
+
+Finally, the series plot for ATM4 displays weekly seasonality and the ACF and PACF plots tell us that the data is not white noise. ATM4 is a non-stationary series.
+
+\ 
 
 ## Part B – Forecasting Power
 

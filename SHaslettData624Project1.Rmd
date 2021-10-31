@@ -6,6 +6,8 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
+# Convert scientific notation to numbers for readability purposes.
+options(scipen = 999)
 knitr::opts_chunk$set(echo = TRUE)
 library(corrplot)
 library(caret)
@@ -82,9 +84,9 @@ The above summary of the reformatted data reveals that:
 
 - **ATM1** and **ATM2** contain empty values.
 
-- The major outlier for **ATM4** is a cash withdrawal of **10919.762**
+- There is a major outlier for **ATM4** - a cash withdrawal of **10919.762**.
 
-To further refine the data, we will remove the empty values for ATM1 and ATM2, and also replace ATM4's outlier with the median for that machine.
+To further refine the data, we will remove the empty values fron ATM1 and ATM2, and also replace ATM4's outlier with the median for that machine's data.
 
 ```{r outlierReplacementAndNARemoval, eval=TRUE, message=FALSE, warning=FALSE}
 # Replace ATM4's withdrawal outlier of 10919.762 with the median for that ATM.
@@ -93,11 +95,11 @@ ATMData$ATM4[ATMData$ATM4==max(ATMData$ATM4)] <- median(ATMData$ATM4)
 # Drop rows with empty values for ATM1 and ATM2.
 ATMData <- ATMData %>% drop_na()
 
-# Resummarize the data after the changes to see the effect of the changes.
+# Resummarize the data to see the effect of the changes.
 summary(ATMData)
 ```
 
-THe above summary confirms that the NA values have now been removed for ATM1 and ATM2, and the outlier for ATM4 has now been resolved. We will now replot the data to confirm that the ATM4's outlier no longer exists.
+THe above summary confirms that the NA values have now been removed from ATM1 and ATM2, and the outlier for ATM4 has now been resolved. We will now replot the data to confirm that ATM4's outlier no longer exists.
 
 ```{r outlierReplacementConfirmationPlot, eval=TRUE, message=FALSE, warning=FALSE}
 # Replot the data to confirm that the outlier for ATM4 has been resolved. 
@@ -121,7 +123,7 @@ Looking at the table above, we can see that the greatest amount of cash is withd
 
 
 #### Timeseries and Modeling
-Now that we have insight into the data, we can convert the dataframe into a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset to a time series and then we will focus on the ARIMA models for each individual ATM machine.
+Now that we have insight into the data, we can convert the dataframe into a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset into a time series and then we will focus on the ARIMA models for each individual ATM machine.
 
 
 ```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
@@ -217,7 +219,7 @@ atmTwoAutoArimaSelection <- auto.arima(atmTwo, lambda = lambda)
 summary(atmTwoAutoArimaSelection)
 ```
 
-The auto.arima() function has selected an ARIMA(2,0,0)(0,1,1)[7] model, so we will use this to forecast how much cash will be taken out of ATM1 in May 2010.
+The auto.arima() function has selected an ARIMA(2,0,0)(0,1,1)[7] model, so we will use this to forecast how much cash will be taken out of ATM2 in May 2010.
 
 
 ##### ATM2 May 2010 Cash Withdrawal Forecast.
@@ -306,13 +308,103 @@ autoplot(atmFourForecast) +
 ### Objectives
 Part B consists of a simple dataset of residential power usage for January 1998 until December 2013. Your assignment is to model these data and a monthly forecast for 2014. The data is given in a single file. The variable ‘KWH’ is power consumption in Kilowatt hours, the rest is straight forward. Add this to your existing files above. 
 
+\ 
+
+#### Data Analysis And Transformation
+
 **1. Read in the data from the data file and take a look at it's structure.**
 ```{r partBLoadData, eval=TRUE, message=FALSE, warning=FALSE}
 residentialPowerUsage <- import('./data/ResidentialCustomerForecastLoad-624.xlsx')
 paged_table(residentialPowerUsage, options = list(rows.print = 30))
+
+# Summarize the data.
+summary(residentialPowerUsage)
 ```
 
+**2. Data Transformation**
+
+Looking at the summary of the raw data above, we can see that the **KWH** column contains one empty value, and one major outlier of **770523** KWH. It also looks like the date format will be problematic when plotting and forecasting the data. Before taking care of the empty value and outlier, we will reformating the date format so we can plot the data to inspect it visually.
+
+```{r partBPlotData, eval=TRUE, message=FALSE, warning=FALSE}
+# Format the date column into a compatible format.
+residentialPowerUsage$`YYYY-MMM` <- paste0(residentialPowerUsage$`YYYY-MMM`, '-01')
+residentialPowerUsage$date <- ymd(residentialPowerUsage$`YYYY-MMM`)
+
+# Plot the data.
+ggplot(residentialPowerUsage, aes(date, KWH)) + geom_line() + 
+  labs(title = 'Residential Power Usage', y = 'KWH', x = 'Time')
+```
+
+Th above plot confirms the outlier visually.
+
+To take care of both the missing value and the outlier, I will impute both values with the mean of the data for the month in which they occur.
+
+```{r partBDataTransformation, eval=TRUE, message=FALSE, warning=FALSE}
+# The missing value occurs in September, 2008, so imput the missing value with the mean of the data for that month.
+residentialPowerUsage$Month <- month(residentialPowerUsage$date)
+residentialPowerUsage$KWH[is.na(residentialPowerUsage$KWH)] <- mean(residentialPowerUsage$KWH[residentialPowerUsage$Month == 9], na.rm = TRUE)
+
+# The outlier occurs in July, 2010, so imput the outlier with the mean of the data for that month.
+residentialPowerUsage$KWH[residentialPowerUsage$KWH == min(residentialPowerUsage$KWH)] <- mean(residentialPowerUsage$KWH[residentialPowerUsage$Month == 7], na.rm = TRUE)
+```
+
+
+Now that we have imputed the data to take care of both the outlier and the missing value, we will summarize and replot the data to confirm that the issues are indeed resolved.
+
+```{r partBPostImputationPlotAndSummary, eval=TRUE, message=FALSE, warning=FALSE}
+# Summarize and plot the data to confirm that both the missing value and outlier have been taken care.
+summary(residentialPowerUsage)
+
+# Plot the data after imputation.
+ggplot(residentialPowerUsage, aes(date, KWH)) + geom_line() + 
+  labs(title = 'Residential Power Usage After Imputation', y = 'KWH', x = 'Time')
+```
+
+The above summary and plot confirms that the imputation has taken care of both the missing value, and the outlier.
+
 \ 
+
+#### Timeseries and Modeling
+Now that we have cleansed the data, we can convert the data into a time series and work on our ARIMA model in preparation for creating a 2014 monthly forecast.
+
+**1. Convert the data into a time series.**
+
+```{r partBTimeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
+# Convert the data to a time series..
+residentialPowerUsageTimeSeries <- ts(residentialPowerUsage[,'KWH'], start = c(1998, 1), frequency = 12)
+```
+
+
+**2. Analyze the time series.**
+
+```{r partBTimeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
+# Plot the time series data.
+autoplot(residentialPowerUsageTimeSeries) +
+  labs(title = 'Monthly Residential Power Usage', subtitle = 'January 1998 Through December 2013') +
+  ylab('Power Consumed in kWh') +
+  xlab('Month') 
+
+```
+
+The above plot reveals that the time series is seasonal, and displays peaks roughly every 6 months. This is probably due to the fact that more electricity is consumed in the winter and summer months. The series also displays an upward trend.
+
+##### ARIMA Modeling
+In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function.
+
+```{r partBARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
+# Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
+lambda <- BoxCox.lambda(residentialPowerUsageTimeSeries)
+residentialPowerUsageAutoArimaSelection <- auto.arima(residentialPowerUsageTimeSeries, lambda = lambda)
+
+# Print out the results of the selection. 
+summary(residentialPowerUsageAutoArimaSelection)
+```
+
+
+The auto.arima() function has selected an ARIMA(0,0,1)(2,1,0)[12] with drif tmodel, so we will use this to create our 2014 monthly power usage forecast.
+
+
+
 
 ## Part C – BONUS
 

@@ -49,88 +49,87 @@ ATMData <- import('./data/ATM624Data.xlsx', col_types = c('date', 'text', 'numer
 paged_table(ATMData, options = list(rows.print = 30))
 ```
 
-A quick inspection of the original data reveals that there are missing values so we will remove these, and also reformat the data so that it is easier to work with.
+A quick inspection of the original data reveals that there are missing values so we will remove rows with missing values, and also reformat the data so that it is easier to work with.
 
 **2. Clean and reformat the data so that each ATM has it's own column containing the cash withdrawal amounts for that ATM.**
-```{r cleanAndReformat, eval=TRUE, message=FALSE, warning=FALSE}
-# Drop empty values and reformat the data using the tidyr package's spread() function.
-ATMDataFormatted <- ATMData %>% drop_na() %>% spread(ATM, Cash)
 
-# Take a look at the reformatted data.
-paged_table(ATMDataFormatted, options = list(rows.print = 30))
-```
-
-Now that the data is in a more workable format, we can start preparing to make the forecast.
-
-Looking at the table above, we can see that the greatest amount of cash is withdrawn from **ATM4**, followed by **ATM1** and **ATM2**, with close to zero withdrawals being made from **ATM3** (_ATM3 only has 3 cash withdrawals - 96, 82, and 85 hundred dollars_).
-
-**3. To gain more insight into the data, generate summary statisitics for the data.**
-```{r summaryData, eval=TRUE, message=FALSE, warning=FALSE}
-summary(ATMDataFormatted)
-```
-
-The summary stats reveal that:
-
-- **ATM1** contains **3** NA values.
-
-- **ATM2** contains **2** NA values.
-
-- **ATM4** has one major outlier, a cash withdrawal of **10919.762**. 
-
-
-**4. In preparation for forecasting, convert the dataset to a timeseries and plot the results so we can gain further insight into the data.**
-```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
-# Convert the dataset to a timeseries using the ts() function.
-ATMTimeSeries <- ts(ATMDataFormatted %>% select(-DATE))
-
-# Plot the timeseries.
-ATMTimeSeries  %>%
-  autoplot()  +
-  labs(title = 'Daily Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4') +
-  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
-  xlab('Day')
-```
-
-Looking at the above plot, we can see that the major outlier for ATM4 may cause issues when forecasting data for this ATM. In order to address this, I will replace that value using the median for ATM4. Additionally, I will also drop the NA values for ATM1 and ATM2. There are so few NA values that I will drop the values rather than risk introducing bias by imputed them with the mean.
-
-```{r outlierReplacement, eval=TRUE, message=FALSE, warning=FALSE}
-# Replace ATM4's withdrawal outlier of 10919.761638 (row 1394 in the orginal dataset)
-# with the median for that ATM (taken from the summary stats above).
-ATMData[1394, 3] <- 403.839
-
-# Now drop the NA values and replot the original data.
+The first order of business is to remove columns that contain empty values. 
+```{r cleanRows, eval=TRUE, message=FALSE, warning=FALSE}
+# Drop rows containing empty values and plot the data.
 ATMData <- ATMData %>% drop_na()
+
+ggplot(ATMData, aes(DATE, Cash)) + geom_line() + facet_grid(ATM~., scales = 'free') +
+  labs(title = 'Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4', y = 'Withdrawals in Hundreds of dollars', x = 'Date')
 ```
 
-In the **_Daily Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4_** plot above, The major outlier in ATM4 prevented us from getting a clear view of the other ATMs. Now that that issue has been addressed, I will replot the original data (_with our fixes applied_) so that we can get a clear view of all 4 ATMs.
-
-```{r dataReplot, eval=TRUE, message=FALSE, warning=FALSE}
-ATMData %>% ggplot(aes(x = DATE, y = Cash, col = ATM)) +
-  geom_line() +
-  facet_wrap(~ATM, ncol = 1, scales = 'free_y') +
-  labs(title = 'Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4', subtitle = 'May 2009 through April 2010') +
-  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
-  xlab('Date') 
-```
-
-The above plot reveals the following:
-
-- Replacing the outlier in **_ATM4_** with the median has tamed the data, and will hopefully result in a more accurate forecast.
+The above plot reveals that:
 
 - There are no withdrawals from **_ATM3_** until around the end of _April 2010_. Given the limited amount of data for this ATM, we may not be able to make an accurate forecast for this machine.
 
-- **ATM2** and **ATM1** display seasonality, so we will need to Box-Cox the data in order to build a more accurate forecast model. 
+- **ATM4** has one major outlier around _March 2010_.
 
-\ 
+We will now reformat the data so that each ATM has it's own column containing the cash withdrawal amounts for that ATM.
+
+```{r cleanAndReformat, eval=TRUE, message=FALSE, warning=FALSE}
+# Reformat the data using the tidyr package's spread() function.
+ATMData <- ATMData %>% spread(ATM, Cash)
+
+# Summarize the data after reformatting the data.
+summary(ATMData)
+```
+
+The above summary of the reformatted data reveals that:
+
+- **ATM1** and **ATM2** contain empty values.
+
+- The major outlier for **ATM4** is a cash withdrawal of **10919.762**
+
+To further refine the data, we will remove the empty values for ATM1 and ATM2, and also replace ATM4's outlier with the median for that machine.
+
+```{r outlierReplacementAndNARemoval, eval=TRUE, message=FALSE, warning=FALSE}
+# Replace ATM4's withdrawal outlier of 10919.762 with the median for that ATM.
+ATMData$ATM4[ATMData$ATM4==max(ATMData$ATM4)] <- median(ATMData$ATM4)
+
+# Drop rows with empty values for ATM1 and ATM2.
+ATMData <- ATMData %>% drop_na()
+
+# Resummarize the data after the changes to see the effect of the changes.
+summary(ATMData)
+```
+
+THe above summary confirms that the NA values have now been removed for ATM1 and ATM2, and the outlier for ATM4 has now been resolved. We will now replot the data to confirm that the ATM4's outlier no longer exists.
+
+```{r outlierReplacementConfirmationPlot, eval=TRUE, message=FALSE, warning=FALSE}
+# Replot the data to confirm that the outlier for ATM4 has been resolved. 
+ATMDataCleaned <- ATMData %>% 
+  pivot_longer(cols = starts_with('ATM'), names_to = 'ATM', values_to = 'Cash')
+
+ggplot(ATMDataCleaned, aes(DATE, Cash)) + geom_line() + facet_grid(ATM~., scales = 'free') +
+  labs(title = 'Cash Withdrawals From ATM1, ATM2, ATM3, and ATM4', y = 'Withdrawals in Hundreds of dollars', x = 'Date')
+```
+
+The above plot confirms that ATM4's outlier no longer exists.
+
+We will now take a look at the reformatted data.
+
+```{r reformattedData, eval=TRUE, message=FALSE, warning=FALSE}
+# Take a look at the reformatted data.
+paged_table(ATMData, options = list(rows.print = 30))
+```
+
+Looking at the table above, we can see that the greatest amount of cash is withdrawn from **ATM4**, followed by **ATM1** and **ATM2**, with close to zero withdrawals being made from **ATM3** (_ATM3 only has 3 cash withdrawals - 96, 82, and 85 hundred dollars_).
+
 
 #### Timeseries and Modeling
 Now that we have insight into the data, we can convert the dataframe into a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset to a time series and then we will focus on the ARIMA models for each individual ATM machine.
 
-```{r finalTimeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
-# Convert the dataset to a time series.
-convertedData <- ATMData %>% spread(ATM, Cash)
-ATMDataTimeSeries <- ts(convertedData %>% select(-DATE), frequency = 7)
+
+```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
+# Convert the dataset to a timeseries using the ts() function.
+ATMDataTimeSeries <- ts(ATMData %>% select(-DATE), start = 1, frequency = 7)
 ```
+
+
 
 \ 
 
@@ -149,8 +148,8 @@ This tells us that this is a non-stationary series. In order to address the seas
 
 ```{r atmOneBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
 # Perform a Box-Cox transformation on the data.
-atmOne <- BoxCox(atmOne, lambda = BoxCox.lambda(atmOne))
-ggtsdisplay(atmOne, main = 'Cash Withdrawals for ATM1 After Box-Cox Transformation')
+#atmOne <- BoxCox(atmOne, lambda = BoxCox.lambda(atmOne))
+#ggtsdisplay(atmOne, main = 'Cash Withdrawals for ATM1 After Box-Cox Transformation')
 ```
 
 Seasonality still exists after Box-Coxing the data for ATM1. However, the transformation has reduced the amount of variance in the data. In order to reduce the amount of seasonality and achieve stationarity, we will now difference the data.
@@ -158,7 +157,7 @@ Seasonality still exists after Box-Coxing the data for ATM1. However, the transf
 ```{r atmOneDifferencing, eval=TRUE, message=FALSE, warning=FALSE}
 # Difference the data and then create a comparision plot so that
 # we can see the effects of differencing on the data. 
-atmOne <- diff(atmOne, lag = 7)
+#atmOne <- diff(atmOne, lag = 7)
 ggtsdisplay(atmOne, main = 'ATM1 After Differencing')
 
 # Perform a KPSS unit root test to confirm stationarity.
@@ -168,20 +167,71 @@ summary(atmOneKPSSTest)
 
 As we can see from the above series plot, differencing the data has reduced seasonality considerably. Additionally, the results of the KPSS unit root test tell us that the data is now stationary as the critical value is less than 1%.
 
+##### ATM1 ARIMA Modeling
+In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
+
+```{r atmOneARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
+# Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
+lambda <- BoxCox.lambda(atmOne)
+atmOneAutoArimaSelection <- auto.arima(atmOne, lambda = lambda)
+
+# Print out the results of the selection. 
+summary(atmOneAutoArimaSelection)
+```
+
+The auto.arima() function has selected an ARIMA(2,0,0)(0,1,1)[7] model, so we will use this to forecast how much cash will be taken out of ATM1 in May 2010.
+
+
+##### ATM1 May 2010 Cash Withdrawal Forecast.
+
+```{r atmOneForecast, eval=TRUE, message=FALSE, warning=FALSE}
+# Forecast cash withdrawals form ATM1 during the month of May 2010 and plot the results.
+atmOneForecast <- forecast(atmOneAutoArimaSelection, 31, level = 95)
+autoplot(atmOneForecast) +
+  labs(title = 'ARIMA(2,0,0)(0,1,1)[7] Forecast',
+       subtitle = 'Forecast of Cash Withdrawals From ATM1 For The Month of May 2010') +
+  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
+  xlab('Days') 
+```
+
 \ 
 
-##### ATM 2
+#### ATM 2
 ```{r atmTwo, eval=TRUE, message=FALSE, warning=FALSE}
 atmTwo <- ATMDataTimeSeries[,2]
-ggtsdisplay(atmTwo,
+ggtsdisplay(atmOne,
             main = 'Cash Withdrawals for ATM2',
             ylab = 'Withdrawal Amount ($K)',
             xlab = 'Week')
-
 ```
 
-The above series plot for ATM2 displays weekly seasonality and the ACF and PACF plots contain lags outside of the boundaries telling us that the data is also not white noise.
-Additionally, ATM2 is also a non-stationary series.
+##### ATM2 ARIMA Modeling
+In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
+
+```{r atmTwoARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
+# Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
+lambda <- BoxCox.lambda(atmTwo)
+atmTwoAutoArimaSelection <- auto.arima(atmTwo, lambda = lambda)
+
+# Print out the results of the selection. 
+summary(atmTwoAutoArimaSelection)
+```
+
+The auto.arima() function has selected an ARIMA(2,0,0)(0,1,1)[7] model, so we will use this to forecast how much cash will be taken out of ATM1 in May 2010.
+
+
+##### ATM2 May 2010 Cash Withdrawal Forecast.
+
+```{r atmTwoForecast, eval=TRUE, message=FALSE, warning=FALSE}
+# Forecast cash withdrawals form ATM2 during the month of May 2010 and plot the results.
+atmTwoForecast <- forecast(atmTwoAutoArimaSelection, 31, level = 95)
+autoplot(atmTwoForecast) +
+  labs(title = 'ARIMA(3,0,4)(0,1,1)[7] Forecast',
+       subtitle = 'Forecast of Cash Withdrawals From ATM2 For The Month of May 2010') +
+  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
+  xlab('Days') 
+```
+
 
 \ 
 
@@ -195,7 +245,19 @@ ggtsdisplay(atmThree,
 
 ```
 
-There is not enough data for ATM3 to make an accurate forecast model.
+There is not enough data for ATM3 to make an accurate forecast model, so we will use the mean to make a forecast.
+
+##### ATM3 May 2010 Cash Withdrawal Forecast.
+
+```{r atmThreeForecast, eval=TRUE, message=FALSE, warning=FALSE}
+# Forecast cash withdrawals from ATM3 using the mean during the month of May 2010 and plot the results.
+atmThree <- window(atmThree, start = 40)
+atmThreeForecast <-meanf(atmThree, 31, level = 95)
+autoplot(atmThreeForecast) +
+  labs(title = 'Mean Forecast For ATM3') +
+  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
+  xlab('Days') 
+```
 
 \ 
 
@@ -208,7 +270,32 @@ ggtsdisplay(atmFour,
             xlab = 'Week')
 ```
 
-Finally, the series plot for ATM4 displays weekly seasonality and the ACF and PACF plots tell us that the data is not white noise. ATM4 is a non-stationary series.
+##### ATM4 ARIMA Modeling
+In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
+
+```{r atmFourARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
+# Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
+lambda <- BoxCox.lambda(atmFour)
+atmFourAutoArimaSelection <- auto.arima(atmFour, lambda = lambda)
+
+# Print out the results of the selection. 
+summary(atmFourAutoArimaSelection)
+```
+
+The auto.arima() function has selected an ARIMA(1,0,1)(2,0,1)[7]] model, so we will use this to forecast how much cash will be taken out of ATM4 in May 2010.
+
+
+##### ATM4 May 2010 Cash Withdrawal Forecast.
+
+```{r atmFourForecast, eval=TRUE, message=FALSE, warning=FALSE}
+# Forecast cash withdrawals form ATM4 during the month of May 2010 and plot the results.
+atmFourForecast <- forecast(atmFourAutoArimaSelection, 31, level = 95)
+autoplot(atmFourForecast) +
+  labs(title = 'ARIMA(1,0,1)(2,0,1)[7] Forecast',
+       subtitle = 'Forecast of Cash Withdrawals From ATM4 For The Month of May 2010') +
+  scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
+  xlab('Days') 
+```
 
 \ 
 

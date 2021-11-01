@@ -70,7 +70,7 @@ The above plot reveals that:
 
 - **ATM4** has one major outlier around _March 2010_.
 
-We will now reformat the data so that each ATM has it's own column containing the cash withdrawal amounts for that ATM.
+We will now reformat the data so that each ATM has its own column containing the cash withdrawal amounts for that ATM.
 
 ```{r cleanAndReformat, eval=TRUE, message=FALSE, warning=FALSE}
 # Reformat the data using the tidyr package's spread() function.
@@ -122,16 +122,16 @@ paged_table(ATMData, options = list(rows.print = 30))
 Looking at the table above, we can see that the greatest amount of cash is withdrawn from **ATM4**, followed by **ATM1** and **ATM2**, with close to zero withdrawals being made from **ATM3** (_ATM3 only has 3 cash withdrawals - 96, 82, and 85 hundred dollars_).
 
 
-#### Timeseries and Modeling
-Now that we have insight into the data, we can convert the dataframe into a time series and work on our ARIMA models in preparation for forecasting. The first step is to convert the entire dataset into a time series and then we will focus on the ARIMA models for each individual ATM machine.
+#### Timeseries and ARIMA Modeling
+Now that we have insight into the data, we can convert the dataframe into a time series and work on our models in preparation for forecasting. For this project, I will be using ARIMA models to forecast the data.
+
+The first step is to convert the entire dataset into a time series and then we will focus on the ARIMA models for each individual ATM machine.
 
 
 ```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
 # Convert the dataset to a timeseries using the ts() function.
 ATMDataTimeSeries <- ts(ATMData %>% select(-DATE), start = 1, frequency = 7)
 ```
-
-
 
 \ 
 
@@ -146,28 +146,21 @@ ggtsdisplay(atmOne,
 ```
 
 The above series plot for ATM1 displays weekly seasonality. The ACF and PACF plots also contain lags that fall outside of the boundaries suggesting that the data is not white noise.
-This tells us that this is a non-stationary series. In order to address the seasonality and variance for ATM1, we will Box-Cox the data.
+This tells us that this is a non-stationary series.
 
-```{r atmOneBoxCox, eval=TRUE, message=FALSE, warning=FALSE}
-# Perform a Box-Cox transformation on the data.
-#atmOne <- BoxCox(atmOne, lambda = BoxCox.lambda(atmOne))
-#ggtsdisplay(atmOne, main = 'Cash Withdrawals for ATM1 After Box-Cox Transformation')
+ARIMA models require stationarity, so we will apply a KPSS Unit Root Test to confirm the findings of the above plots that suggest the data is not stationary.
+
+```{r atmOneKPSStest, eval=TRUE, message=FALSE, warning=FALSE}
+atmOne %>% ur.kpss() %>% summary()
 ```
 
-Seasonality still exists after Box-Coxing the data for ATM1. However, the transformation has reduced the amount of variance in the data. In order to reduce the amount of seasonality and achieve stationarity, we will now difference the data.
+The KPSS Unit Root Test results above confirm that the data is not stationary as the test-statistic value is greater than the significance levels. To address this issue, we will try differencing the data at lag 7, and run the KPSS test again to see if the data becomes stationary.
 
 ```{r atmOneDifferencing, eval=TRUE, message=FALSE, warning=FALSE}
-# Difference the data and then create a comparision plot so that
-# we can see the effects of differencing on the data. 
-#atmOne <- diff(atmOne, lag = 7)
-ggtsdisplay(atmOne, main = 'ATM1 After Differencing')
-
-# Perform a KPSS unit root test to confirm stationarity.
-atmOneKPSSTest <- ur.kpss(atmOne)
-summary(atmOneKPSSTest)
+atmOne %>% diff(1) %>% ur.kpss() %>% summary()
 ```
 
-As we can see from the above series plot, differencing the data has reduced seasonality considerably. Additionally, the results of the KPSS unit root test tell us that the data is now stationary as the critical value is less than 1%.
+As we can see from the KPSS Unit Root Test results above, the data is made stationary by differencing at lag 7.
 
 ##### ATM1 ARIMA Modeling
 In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
@@ -206,6 +199,26 @@ ggtsdisplay(atmOne,
             ylab = 'Withdrawal Amount ($K)',
             xlab = 'Week')
 ```
+
+The ACF and PACF plots for ATM2 above contain lags that fall outside of the boundaries suggesting that the data is not white noise.
+This tells us that this is a non-stationary series.
+
+we will apply a KPSS Unit Root Test to confirm that the data is not stationary.
+
+```{r atmTwoKPSStest, eval=TRUE, message=FALSE, warning=FALSE}
+atmTwo %>% ur.kpss() %>% summary()
+```
+
+The KPSS Unit Root Test results above confirm that the data is not stationary as the test-statistic value is greater than the significance levels. We will try differencing the data at lag 7, and run the KPSS test again to see if the data becomes stationary.
+
+```{r atmOneDifferencing, eval=TRUE, message=FALSE, warning=FALSE}
+atmTwo %>% diff(1) %>% ur.kpss() %>% summary()
+```
+
+The KPSS Unit Root Test results above confirm that the data is made stationary by differencing at lag 7.
+
+
+
 
 ##### ATM2 ARIMA Modeling
 In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
@@ -271,6 +284,14 @@ ggtsdisplay(atmFour,
             ylab = 'Withdrawal Amount ($K)',
             xlab = 'Week')
 ```
+
+The ACF and PACF plots for ATM4 above show us that most of the lags are within the boundaries so the data is most likely stationary. To confirm this, we will apply a KPSS Unit Root Test.
+
+```{r atmTwoKPSStest, eval=TRUE, message=FALSE, warning=FALSE}
+atmFour %>% ur.kpss() %>% summary()
+```
+
+The above KPSS Unit Root Test results above confirm that the data for ATM4 is indeed stationary.
 
 ##### ATM4 ARIMA Modeling
 In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
@@ -567,4 +588,5 @@ Looking at the above results, The ARIMA(1,1,1) model seems to be a good fit for 
 ```{r CSVExport, eval=TRUE, message=FALSE, warning=FALSE}
 waterFlowForecast %>% write.csv('./data/SHaslettPartCWaterFlow.csv', row.names = FALSE)
 ```
+
 

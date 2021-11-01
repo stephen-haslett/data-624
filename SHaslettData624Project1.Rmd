@@ -499,10 +499,36 @@ paged_table(waterFlowPipes, options = list(rows.print = 30))
 Now that the data has been aggregated, we will convert it to a time series and check for stationarity.
 
 ```{r partCTimeSeries, eval=TRUE, message=FALSE, warning=FALSE}
+# Convert the aggregated data to a time series and plot the results.
+waterFlowTimeSeries <- ts(waterFlowPipes$WaterFlow)
+autoplot(waterFlowTimeSeries) +
+  labs(title = 'Water Flow Time Series') +
+  ylab('Waterflow Measurement') +
+  xlab('Time') 
+```
 
+Looking at the variance in the Water Flow time series above, it is unlikely that the data is stationary. To confirm this, we will perform a KPSS Unit root test.
+
+```{r rootTest, eval=TRUE, message=FALSE, warning=FALSE}
+# Perform a  KPSS Unit root test on the time series to check for stationarity.
+waterFlowTimeSeries %>% ur.kpss() %>% summary()
+```
+
+The results of the KPSS test confirm that the data is not stationary as the test-statistic value is greater than the significance levels. To address this issue, we will try differencing the data once at lag 1, and run the KPSS test again to see if the data becomes stationary.
+
+```{r Differencing, eval=TRUE, message=FALSE, warning=FALSE}
+# Difference the data and retest.
+waterFlowTimeSeries %>% diff() %>% ur.kpss() %>% summary()
+```
+
+The above test results confirm that the data has become stationary after differencing. To confirm this visually, we will plot the differenced time series.
+
+```{r DifferencedPlot, eval=TRUE, message=FALSE, warning=FALSE}
+# Replot the time series after differencing to check for stationarity.
+waterFlowTimeSeriesDifferenced <- waterFlowTimeSeries %>% diff()
+autoplot(waterFlowTimeSeriesDifferenced) +
+  labs(title = 'Stationary Water Flow Time Series After Differencing')
 ```
 
 
-
-
-
+The above plot visually confirms that the data is stationary after differencing.

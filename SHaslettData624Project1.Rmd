@@ -1,7 +1,7 @@
 ---
 title: "Data 624 Project 1"
 author: "Stephen Haslett"
-date: "10/25/2021"
+date: "10/22/2021"
 output: html_document
 ---
 
@@ -86,7 +86,7 @@ The above summary of the reformatted data reveals that:
 
 - There is a major outlier for **ATM4** - a cash withdrawal of **10919.762**.
 
-To further refine the data, we will remove the empty values fron ATM1 and ATM2, and also replace ATM4's outlier with the median for that machine's data.
+To further refine the data, we will remove the empty values from ATM1 and ATM2, and also replace ATM4's outlier with the median for that machine's data.
 
 ```{r outlierReplacementAndNARemoval, eval=TRUE, message=FALSE, warning=FALSE}
 # Replace ATM4's withdrawal outlier of 10919.762 with the median for that ATM.
@@ -99,7 +99,7 @@ ATMData <- ATMData %>% drop_na()
 summary(ATMData)
 ```
 
-THe above summary confirms that the NA values have now been removed from ATM1 and ATM2, and the outlier for ATM4 has now been resolved. We will now replot the data to confirm that ATM4's outlier no longer exists.
+The above summary confirms that the NA values have now been removed from ATM1 and ATM2, and the outlier for ATM4 has now been resolved. We will now re-plot the data to confirm that ATM4's outlier no longer exists.
 
 ```{r outlierReplacementConfirmationPlot, eval=TRUE, message=FALSE, warning=FALSE}
 # Replot the data to confirm that the outlier for ATM4 has been resolved. 
@@ -125,7 +125,7 @@ Looking at the table above, we can see that the greatest amount of cash is withd
 #### Timeseries and ARIMA Modeling
 Now that we have insight into the data, we can convert the dataframe into a time series and work on our models in preparation for forecasting. For this project, I will be using ARIMA models to forecast the data.
 
-The first step is to convert the entire dataset into a time series and then we will focus on the ARIMA models for each individual ATM machine.
+The first step is to convert the entire data set into a time series and then we will focus on the ARIMA models for each individual ATM machine.
 
 
 ```{r timeSeriesConversion, eval=TRUE, message=FALSE, warning=FALSE}
@@ -163,7 +163,7 @@ atmOne %>% diff(1) %>% ur.kpss() %>% summary()
 As we can see from the KPSS Unit Root Test results above, the data is made stationary by differencing at lag 7.
 
 ##### ATM1 ARIMA Modeling
-In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
+In order to select the most appropriate ARIMA model for forecasting, we will use the auto.arima() function to suggest the best model to use.
 
 ```{r atmOneARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
 # Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
@@ -174,7 +174,7 @@ atmOneAutoArimaSelection <- auto.arima(atmOne, lambda = lambda)
 summary(atmOneAutoArimaSelection)
 ```
 
-The auto.arima() function has selected an ARIMA(2,0,0)(0,1,1)[7] model, so we will use this to forecast how much cash will be taken out of ATM1 in May 2010.
+The auto.arima() function has selected an ARIMA(2,0,0)(0,1,1)[7] model which is seasonal and gels with our KPSS Unit Root Test findings, so we will use this to forecast how much cash will be taken out of ATM1 in May 2010.
 
 
 ##### ATM1 May 2010 Cash Withdrawal Forecast.
@@ -187,6 +187,14 @@ autoplot(atmOneForecast) +
        subtitle = 'Forecast of Cash Withdrawals From ATM1 For The Month of May 2010') +
   scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
   xlab('Days') 
+```
+
+The above forecast looks good as it follows the general trend of the data.
+
+##### Export The Forecast To A CSV File
+
+```{r ATM1CSVExport, eval=TRUE, message=FALSE, warning=FALSE}
+atmOneForecast %>% write.csv('./data/SHaslettPartAatmOneForecast.csv', row.names = FALSE)
 ```
 
 \ 
@@ -211,7 +219,7 @@ atmTwo %>% ur.kpss() %>% summary()
 
 The KPSS Unit Root Test results above confirm that the data is not stationary as the test-statistic value is greater than the significance levels. We will try differencing the data at lag 7, and run the KPSS test again to see if the data becomes stationary.
 
-```{r atmOneDifferencing, eval=TRUE, message=FALSE, warning=FALSE}
+```{r atmTwoDifferencing, eval=TRUE, message=FALSE, warning=FALSE}
 atmTwo %>% diff(1) %>% ur.kpss() %>% summary()
 ```
 
@@ -221,7 +229,7 @@ The KPSS Unit Root Test results above confirm that the data is made stationary b
 
 
 ##### ATM2 ARIMA Modeling
-In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
+In order to select the most appropriate ARIMA model for forecasting, we will use the auto.arima() function to suggest the best model to use.
 
 ```{r atmTwoARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
 # Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
@@ -247,6 +255,11 @@ autoplot(atmTwoForecast) +
   xlab('Days') 
 ```
 
+##### Export The Forecast To A CSV File
+
+```{r ATM2CSVExport, eval=TRUE, message=FALSE, warning=FALSE}
+atmTwoForecast %>% write.csv('./data/SHaslettPartAatmTwoForecast.csv', row.names = FALSE)
+```
 
 \ 
 
@@ -260,18 +273,23 @@ ggtsdisplay(atmThree,
 
 ```
 
-There is not enough data for ATM3 to make an accurate forecast model, so we will use the mean to make a forecast.
+There is not enough data for ATM3 to make an accurate forecast model, so we will use a random walk with drift to make a forecast.
 
 ##### ATM3 May 2010 Cash Withdrawal Forecast.
 
 ```{r atmThreeForecast, eval=TRUE, message=FALSE, warning=FALSE}
-# Forecast cash withdrawals from ATM3 using the mean during the month of May 2010 and plot the results.
-atmThree <- window(atmThree, start = 40)
-atmThreeForecast <-meanf(atmThree, 31, level = 95)
+# Forecast cash withdrawals from ATM3 during the month of May 2010 using a random walk with drift and plot the results.
+atmThreeForecast <- rwf(atmThree, h = 31, drift=TRUE)
 autoplot(atmThreeForecast) +
-  labs(title = 'Mean Forecast For ATM3') +
+  labs(title = 'Random Walk With Drift Forecast For ATM3') +
   scale_y_continuous('Withdrawals In Hundreds of Dollars', labels = scales::dollar_format(scale = 0.1, suffix = 'K')) +
   xlab('Days') 
+```
+
+##### Export The Forecast To A CSV File
+
+```{r ATM3CSVExport, eval=TRUE, message=FALSE, warning=FALSE}
+atmThreeForecast %>% write.csv('./data/SHaslettPartAatmThreeForecast.csv', row.names = FALSE)
 ```
 
 \ 
@@ -287,14 +305,14 @@ ggtsdisplay(atmFour,
 
 The ACF and PACF plots for ATM4 above show us that most of the lags are within the boundaries so the data is most likely stationary. To confirm this, we will apply a KPSS Unit Root Test.
 
-```{r atmTwoKPSStest, eval=TRUE, message=FALSE, warning=FALSE}
+```{r atmFourKPSStest, eval=TRUE, message=FALSE, warning=FALSE}
 atmFour %>% ur.kpss() %>% summary()
 ```
 
 The above KPSS Unit Root Test results above confirm that the data for ATM4 is indeed stationary.
 
 ##### ATM4 ARIMA Modeling
-In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function to suggest the best model to use.
+In order to select the most appropriate ARIMA model for forecasting, we will use the auto.arima() function to suggest the best model to use.
 
 ```{r atmFourARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
 # Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
@@ -320,6 +338,12 @@ autoplot(atmFourForecast) +
   xlab('Days') 
 ```
 
+##### Export The Forecast To A CSV File
+
+```{r ATM4CSVExport, eval=TRUE, message=FALSE, warning=FALSE}
+atmFourForecast %>% write.csv('./data/SHaslettPartAatmFourForecast.csv', row.names = FALSE)
+```
+
 \ 
 
 ## Part B – Forecasting Power
@@ -327,7 +351,7 @@ autoplot(atmFourForecast) +
 **Data File**: _ResidentialCustomerForecastLoad-624.xlsx_
 
 ### Objectives
-Part B consists of a simple dataset of residential power usage for January 1998 until December 2013. Your assignment is to model these data and a monthly forecast for 2014. The data is given in a single file. The variable ‘KWH’ is power consumption in Kilowatt hours, the rest is straight forward. Add this to your existing files above. 
+Part B consists of a simple data set of residential power usage for January 1998 until December 2013. Your assignment is to model these data and a monthly forecast for 2014. The data is given in a single file. The variable ‘KWH’ is power consumption in Kilowatt hours, the rest is straight forward. Add this to your existing files above. 
 
 \ 
 
@@ -344,7 +368,7 @@ summary(residentialPowerUsage)
 
 **2. Data Transformation**
 
-Looking at the summary of the raw data above, we can see that the **KWH** column contains one empty value, and one major outlier of **770523** KWH. It also looks like the date format will be problematic when plotting and forecasting the data. Before taking care of the empty value and outlier, we will reformating the date format so we can plot the data to inspect it visually.
+Looking at the summary of the raw data above, we can see that the **KWH** column contains one empty value, and one major outlier of **770523** KWH. It also looks like the date format will be problematic when plotting and forecasting the data. Before taking care of the empty value and outlier, we will reformatting the date format so we can plot the data to inspect it visually.
 
 ```{r partBPlotData, eval=TRUE, message=FALSE, warning=FALSE}
 # Format the date column into a compatible format.
@@ -361,7 +385,8 @@ Th above plot confirms the outlier visually.
 To take care of both the missing value and the outlier, I will impute both values with the mean of the data for the month in which they occur.
 
 ```{r partBDataTransformation, eval=TRUE, message=FALSE, warning=FALSE}
-# The missing value occurs in September, 2008, so imput the missing value with the mean of the data for that month.
+# The missing value occurs in September, 2008, so imput the
+# missing value with the mean of the data for that month.
 residentialPowerUsage$Month <- month(residentialPowerUsage$date)
 residentialPowerUsage$KWH[is.na(residentialPowerUsage$KWH)] <- mean(residentialPowerUsage$KWH[residentialPowerUsage$Month == 9], na.rm = TRUE)
 
@@ -370,7 +395,7 @@ residentialPowerUsage$KWH[residentialPowerUsage$KWH == min(residentialPowerUsage
 ```
 
 
-Now that we have imputed the data to take care of both the outlier and the missing value, we will summarize and replot the data to confirm that the issues are indeed resolved.
+Now that we have imputed the data to take care of both the outlier and the missing value, we will summarize and re-plot the data to confirm that the issues are indeed resolved.
 
 ```{r partBPostImputationPlotAndSummary, eval=TRUE, message=FALSE, warning=FALSE}
 # Summarize and plot the data to confirm that both the missing value and outlier have been taken care.
@@ -410,7 +435,7 @@ autoplot(residentialPowerUsageTimeSeries) +
 The above plot reveals that the time series is seasonal, and displays peaks roughly every 6 months. This is probably due to the fact that more electricity is consumed in the winter and summer months. The series also displays an upward trend.
 
 ##### ARIMA Modeling
-In order to select the most appropriate ARIMA model for forcasting, we will use the auto.arima() function.
+In order to select the most appropriate ARIMA model for forecasting, we will use the auto.arima() function.
 
 ```{r partBARIMASelection, eval=TRUE, message=FALSE, warning=FALSE}
 # Run the series through the auto.arima() function and have it automatically select an appropriate ARIMA model. 
@@ -437,6 +462,13 @@ autoplot(residentialPowerConsumptionForecast) +
 ```
 
 The above forecast looks really good and follows the data trend perfectly.
+
+##### Export The Forecast To A CSV File
+
+```{r powerCSVExport, eval=TRUE, message=FALSE, warning=FALSE}
+residentialPowerConsumptionForecast %>% write.csv('./data/SHaslettPartBresidentialPowerConsumptionForecast.csv', row.names = FALSE)
+```
+
 
 ## Part C – BONUS
 

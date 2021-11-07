@@ -22,6 +22,7 @@ library(lubridate)
 library(ggplot2)
 library(AppliedPredictiveModeling)
 library(pls)
+library(elasticnet)
 ```
 
 ### Exercise 6.2
@@ -37,6 +38,7 @@ data(permeability)
 
 The matrix _fingerprints_ contains the 1,107 binary molecular predictors for the 165 compounds, while _permeability_ contains permeability response.
 
+\ 
 
 **(b) The fingerprint predictors indicate the presence or absence of substructures of a molecule and are often sparse meaning that relatively few of the molecules contain each substructure. Filter out the predictors that have low frequencies using the nearZeroVar function from the caret package. How many predictors are left for modeling**?
 
@@ -59,11 +61,12 @@ paste(dim(filteredResults)[2], ' predictors remain for modeling after filtering.
 
 _388 predictors are left for modeling after filtering out predictors with low frequencies._
 
+\ 
 
 **(c) Split the data into a training and a test set, pre-process the data, and tune a PLS model. How many latent variables are optimal and what is the corresponding resampled estimate of R2**?
 
 ```{r 6.2C, eval=TRUE, message=FALSE, warning=FALSE}
-set.seed(100)
+set.seed(5)
 
 # Split the training data using an 80% training data split.
 trainingData <- createDataPartition(permeability, p = 0.8, list = FALSE)
@@ -76,25 +79,93 @@ yTestData <- permeability[-trainingData, ]
 
 # Pre-process the data and tune a PLS model.
 plsModel <- train(x = xTrainData, y = yTrainData, method = 'pls', metric = 'Rsquared',
-                tuneLength = 20, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
+                  tuneLength = 20, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
 
 # Print out the results.
-plsResult <- plsModel$results
 plsModel
 ```
 
 **Answer:**
 
-Using R2 to select the optimal model, **_9 latent variables_** are optimal (_ncomp = 9_), and the corresponding **_resampled estimate of R2_** is **_0.5395872_**.
+Using R2 to select the optimal model, **_10 latent variables_** are optimal (_ncomp = 10_), and the corresponding **_resampled estimate of R2_** is **_0.4885690_**.
 
+\ 
 
 **(d) Predict the response for the test set. What is the test set estimate of R2**?
+```{r 6.2D, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict the response for the test set.
+testSetResponsePrediction <- predict(plsModel, xTestData) %>% postResample(obs = yTestData)
+testSetResponsePrediction
+```
 
+**Answer:**
+
+The test set estimate of R2 is **0.457552**.
+
+\ 
 
 **(e) Try building other models discussed in this chapter. Do any have better predictive performance**?
 
+#### PCR Model
+```{r 6.2EPCRModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(5)
+
+# Build a PCR model for performance comparision.
+pcrModel <- train(x = xTrainData, y = yTrainData, method = 'pcr', metric = 'Rsquared', 
+                  tuneLength = 20, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
+
+# Print out the results.
+pcrModel
+```
+
+
+#### PCR Model Prediction Results
+```{r 6.2EPCRModelPrediction, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict the response for the test set.
+pcrPredictionResults <- predict(pcrModel, xTestData) %>% postResample(obs = yTestData)
+pcrPredictionResults
+```
+
+\ 
+
+#### Ridge Model
+```{r 6.2ERidgeModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(5)
+
+# Build a Ridge model for performance comparision.
+ridgeGrid <- data.frame(.lambda = seq(0, 1, by = 0.1))
+ridgeModel <- train(x = xTrainData, y = yTrainData, method = 'ridge', metric = 'Rsquared', 
+                    tuneGrid = ridgeGrid, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
+
+# Print out the results.
+ridgeModel
+```
+
+
+#### Ridge Model Prediction Results
+```{r 6.2ERidgeModelPrediction, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict the response for the test set.
+ridgePredictionResults <- predict(ridgeModel, xTestData) %>% postResample(obs = yTestData)
+ridgePredictionResults
+```
+
+**Answer:**
+
+R2 values for each model:
+
+- **PLS Model: 0.457552**
+
+- **PCR Model: 0.3241302**
+
+- **Ridge Model: 0.4519973**
+
+The model with the best R2 value is the original **PLS Model**.
+
+
 
 **(f) Would you recommend any of your models to replace the permeability laboratory experiment**?
+
+I would not recommend replacing the permeability laboratory experiment with one of my models. The original **PLS** model has the highest R2 value and is therefore the most accurate model. The **Ridge** model is close to the  **PLS** model in terms of accuracy (_R2 value is 0.4519973_), where as the **PCR** model is the least accurate with an R2 value of _0.3241302_. 
 
 \ 
 

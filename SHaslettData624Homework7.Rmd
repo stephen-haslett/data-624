@@ -1,0 +1,264 @@
+---
+title: "Data 624 Homework 7"
+subtitle: "Week 10 Linear Regression"
+author: "Stephen Haslett"
+date: "11/03/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(corrplot)
+library(caret)
+library(tidyr)
+library(dplyr)
+library(mice)
+library(kableExtra)
+library(mlbench)
+library(forecast)
+library(DT)
+library(tsibble)
+library(lubridate)
+library(ggplot2)
+library(AppliedPredictiveModeling)
+library(pls)
+library(elasticnet)
+library(RANN)
+```
+
+### Exercise 6.2
+Developing a model to predict permeability could save significant resources for a pharmaceutical company, while at the same time more rapidly identifying molecules that have a sufficient permeability to become a drug:
+
+
+**(a) Start R and use these commands to load the data**:
+
+```{r 6.2A, eval=TRUE, message=FALSE, warning=FALSE}
+library(AppliedPredictiveModeling)
+data(permeability)
+```
+
+The matrix _fingerprints_ contains the 1,107 binary molecular predictors for the 165 compounds, while _permeability_ contains permeability response.
+
+\ 
+
+**(b) The fingerprint predictors indicate the presence or absence of substructures of a molecule and are often sparse meaning that relatively few of the molecules contain each substructure. Filter out the predictors that have low frequencies using the nearZeroVar function from the caret package. How many predictors are left for modeling**?
+
+```{r 6.2B, eval=TRUE, message=FALSE, warning=FALSE}
+# See how many predictors are present before filtering.
+paste(dim(fingerprints)[2], ' predictors exist before filtering.' , sep = '') %>% print()
+
+# Filter out predictors wirth low frequencies using the nearZeroVar() function.
+filteredData <- nearZeroVar(fingerprints)
+
+# Filtered results.
+filteredResults <- fingerprints[, - filteredData]
+
+# See how many predictors are present after filtering.
+paste(dim(filteredResults)[2], ' predictors remain for modeling after filtering.' , sep = '') %>% print()
+
+```
+
+**Answer:**
+
+_388 predictors are left for modeling after filtering out predictors with low frequencies._
+
+\ 
+
+**(c) Split the data into a training and a test set, pre-process the data, and tune a PLS model. How many latent variables are optimal and what is the corresponding resampled estimate of R2**?
+
+```{r 6.2C, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(5)
+
+# Split the training data using an 80% training data split.
+trainingData <- createDataPartition(permeability, p = 0.8, list = FALSE)
+xTrainData <- filteredResults[trainingData, ]
+yTrainData <- permeability[trainingData, ]
+
+# Split the test data.
+xTestData <- filteredResults[-trainingData, ]
+yTestData <- permeability[-trainingData, ]
+
+# Pre-process the data and tune a PLS model.
+plsModel <- train(x = xTrainData, y = yTrainData, method = 'pls', metric = 'Rsquared',
+                  tuneLength = 20, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
+
+# Print out the results.
+plsModel
+```
+
+**Answer:**
+
+Using R2 to select the optimal model, **_10 latent variables_** are optimal (_ncomp = 10_), and the corresponding **_resampled estimate of R2_** is **_0.4885690_**.
+
+\ 
+
+**(d) Predict the response for the test set. What is the test set estimate of R2**?
+```{r 6.2D, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict the response for the test set.
+testSetResponsePrediction <- predict(plsModel, xTestData) %>% postResample(obs = yTestData)
+testSetResponsePrediction
+```
+
+**Answer:**
+
+The test set estimate of R2 is **0.457552**.
+
+\ 
+
+**(e) Try building other models discussed in this chapter. Do any have better predictive performance**?
+
+#### PCR Model
+```{r 6.2EPCRModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(5)
+
+# Build a PCR model for performance comparision.
+pcrModel <- train(x = xTrainData, y = yTrainData, method = 'pcr', metric = 'Rsquared', 
+                  tuneLength = 20, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
+
+# Print out the results.
+pcrModel
+```
+
+
+#### PCR Model Prediction Results
+```{r 6.2EPCRModelPrediction, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict the response for the test set.
+pcrPredictionResults <- predict(pcrModel, xTestData) %>% postResample(obs = yTestData)
+pcrPredictionResults
+```
+
+\ 
+
+#### Ridge Model
+```{r 6.2ERidgeModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(5)
+
+# Build a Ridge model for performance comparision.
+ridgeGrid <- data.frame(.lambda = seq(0, 1, by = 0.1))
+ridgeModel <- train(x = xTrainData, y = yTrainData, method = 'ridge', metric = 'Rsquared', 
+                    tuneGrid = ridgeGrid, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
+
+# Print out the results.
+ridgeModel
+```
+
+
+#### Ridge Model Prediction Results
+```{r 6.2ERidgeModelPrediction, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict the response for the test set.
+ridgePredictionResults <- predict(ridgeModel, xTestData) %>% postResample(obs = yTestData)
+ridgePredictionResults
+```
+
+**Answer:**
+
+R2 values for each model:
+
+- **PLS Model: 0.457552**
+
+- **PCR Model: 0.3241302**
+
+- **Ridge Model: 0.4519973**
+
+The model with the best R2 value is the original **PLS Model**.
+
+
+
+**(f) Would you recommend any of your models to replace the permeability laboratory experiment**?
+
+I would not recommend replacing the permeability laboratory experiment with one of my models. The original **PLS** model has the highest R2 value and is therefore the most accurate model. The **Ridge** model is close to the  **PLS** model in terms of accuracy (_R2 value is 0.4519973_), where as the **PCR** model is the least accurate with an R2 value of _0.3241302_. 
+
+\ 
+
+### Exercise 6.3
+A chemical manufacturing process for a pharmaceutical product was discussed in Sect. 1.4. In this problem, the objective is to understand the relationship between biological measurements of the raw materials (predictors), measurements of the manufacturing process (predictors), and the response of product yield. Biological predictors cannot be changed but can be used to assess the quality of the raw material before processing. On the other hand, manufacturing process predictors can be changed in the manufacturing process. Improving product yield by 1 % will boost revenue by approximately one hundred thousand dollars per batch:
+
+
+**(a) Start R and use these commands to load the data**:
+
+```{r 6.3A, eval=TRUE, message=FALSE, warning=FALSE}
+library(AppliedPredictiveModeling)
+data(ChemicalManufacturingProcess)
+```
+
+The matrix processPredictors contains the 57 predictors (12 describing the input biological material and 45 describing the process predictors) for the 176 manufacturing runs. yield contains the percent yield for each run.
+
+\ 
+
+**(b) A small percentage of cells in the predictor set contain missing values. Use an imputation function to fill in these missing values (e.g., see Sect. 3.8)**.
+```{r 6.3BSummary, eval=TRUE, message=FALSE, warning=FALSE}
+# Take a look at which predictors have missing values.
+summary(ChemicalManufacturingProcess)
+```
+
+
+```{r 6.3BImpute, eval=TRUE, message=FALSE, warning=FALSE}
+# Impute the missing values using KNN.
+cmpImputed <- preProcess(ChemicalManufacturingProcess, 'knnImpute')
+```
+
+
+```{r 6.3BPredict, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict after imputation.
+chemicalMPData <- predict(cmpImputed, ChemicalManufacturingProcess)
+```
+
+\ 
+
+**(c) Split the data into a training and a test set, pre-process the data, and tune a model of your choice from this chapter. What is the optimal value of the performance metric**?
+```{r 6.3C, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(5)
+
+# Split the training data using an 80% training data split.
+trainingData <- createDataPartition(ChemicalManufacturingProcess$Yield, p = 0.8, list = FALSE)
+xTrainData <- chemicalMPData[trainingData, ]
+yTrainData <- ChemicalManufacturingProcess$Yield[trainingData]
+
+# Split the test data.
+xTestData <- chemicalMPData[-trainingData, ]
+yTestData <- ChemicalManufacturingProcess$Yield[-trainingData]
+
+# Pre-process the data and tune a PLS model.
+plsModel <- train(x = xTrainData, y = yTrainData, method = 'pls', metric = 'Rsquared',
+                  tuneLength = 20, trControl = trainControl(method = 'cv'), preProcess = c('center', 'scale'))
+
+# Print out the results.
+plsModel
+```
+
+
+**Answer:**
+
+For this question, I tuned a PLS model. Using Rsquared as the performance metric, the optimal value is _ncomp = 16_, with an R2 of **_0.9977279_**.  
+
+\ 
+
+**(d) Predict the response for the test set. What is the value of the performance metric and how does this compare with the resampled performance metric on the training set**?
+```{r 6.3D, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict the response for the test set.
+testSetResponsePrediction <- predict(plsModel, xTestData) %>% postResample(obs = yTestData)
+testSetResponsePrediction
+```
+
+**Answer:**
+
+The test set R2 is **0.99938957** which is higher than that of the training set. 
+
+\ 
+
+**(e) Which predictors are most important in the model you have trained? Do either the biological or process predictors dominate the list**?
+```{r 6.3E, eval=TRUE, message=FALSE, warning=FALSE}
+plsModel$finalModel$coefficients
+```
+
+**Answer:**
+
+Looking at the above comps, the **ManufacturingProcess** predictors appear to be most important.
+
+\ 
+
+**(f) Explore the relationships between each of the top predictors and the response. How could this information be helpful in improving yield in future runs of the manufacturing process**?
+
+The highest scoring BiologicalMaterial predictor is BiologicalMaterial08, which has an outcome score of **9.064827e-03**. Being able to identify which materials are more important will improve yield in future runs as more emphasis can be placed on these materials. Additionally, being able to indentify the most important ManufacturingProcesses allows for further refinement of the process.
+
+\ 

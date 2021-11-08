@@ -183,6 +183,7 @@ data(ChemicalManufacturingProcess)
 
 The matrix processPredictors contains the 57 predictors (12 describing the input biological material and 45 describing the process predictors) for the 176 manufacturing runs. yield contains the percent yield for each run.
 
+\ 
 
 **(b) A small percentage of cells in the predictor set contain missing values. Use an imputation function to fill in these missing values (e.g., see Sect. 3.8)**.
 ```{r 6.3BSummary, eval=TRUE, message=FALSE, warning=FALSE}
@@ -202,6 +203,7 @@ cmpImputed <- preProcess(ChemicalManufacturingProcess, 'knnImpute')
 chemicalMPData <- predict(cmpImputed, ChemicalManufacturingProcess)
 ```
 
+\ 
 
 **(c) Split the data into a training and a test set, pre-process the data, and tune a model of your choice from this chapter. What is the optimal value of the performance metric**?
 ```{r 6.3C, eval=TRUE, message=FALSE, warning=FALSE}
@@ -229,6 +231,7 @@ plsModel
 
 For this question, I tuned a PLS model. Using Rsquared as the performance metric, the optimal value is _ncomp = 16_, with an R2 of **_0.9977279_**.  
 
+\ 
 
 **(d) Predict the response for the test set. What is the value of the performance metric and how does this compare with the resampled performance metric on the training set**?
 ```{r 6.3D, eval=TRUE, message=FALSE, warning=FALSE}
@@ -241,6 +244,7 @@ testSetResponsePrediction
 
 The test set R2 is **0.99938957** which is higher than that of the training set. 
 
+\ 
 
 **(e) Which predictors are most important in the model you have trained? Do either the biological or process predictors dominate the list**?
 ```{r 6.3E, eval=TRUE, message=FALSE, warning=FALSE}
@@ -251,8 +255,10 @@ plsModel$finalModel$coefficients
 
 Looking at the above comps, the **ManufacturingProcess** predictors appear to be most important.
 
+\ 
 
 **(f) Explore the relationships between each of the top predictors and the response. How could this information be helpful in improving yield in future runs of the manufacturing process**?
 
 The highest scoring BiologicalMaterial predictor is BiologicalMaterial08, which has an outcome score of **9.064827e-03**. Being able to identify which materials are more important will improve yield in future runs as more emphasis can be placed on these materials. Additionally, being able to indentify the most important ManufacturingProcesses allows for further refinement of the process.
 
+\ 

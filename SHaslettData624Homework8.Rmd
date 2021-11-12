@@ -65,7 +65,8 @@ knnModel
 knnPred <- predict(knnModel, newdata = testData$x)
 ## The function 'postResample' can be used to get the test set
 ## perforamnce values
-postResample(pred = knnPred, obs = testData$y)
+knnPerformance <- postResample(pred = knnPred, obs = testData$y)
+knnPerformance
 ```
 
 
@@ -91,7 +92,8 @@ marsModel
 ```{r 7.2MARSModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
 # Run predict() and postResample() on the model.
 marsPred <- predict(marsModel, newdata = testData$x)
-postResample(pred = marsPred, obs = testData$y)
+marsPerformance <- postResample(pred = marsPred, obs = testData$y)
+marsPerformance
 ```
 
 
@@ -114,7 +116,8 @@ svmModel
 ```{r 7.2SVMModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
 # Run predict() and postResample().
 svmPred <- predict(svmModel, newdata = testData$x)
-postResample(pred = svmPred, obs = testData$y)
+svmPerformance <- postResample(pred = svmPred, obs = testData$y)
+svmPerformance
 ```
 
 
@@ -142,12 +145,20 @@ nnetModel
 ```{r 7.2NNetModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
 # Run predict() and postResample().
 nnetPred <- predict(nnetModel, newdata = testData$x)
-postResample(pred = nnetPred, obs = testData$y)
+nnetPerformance <- postResample(pred = nnetPred, obs = testData$y)
+nnetPerformance
+```
+
+**Model Performance Comparison**
+
+```{r 7.2ModelPerforamnceComparison, eval=TRUE, message=FALSE, warning=FALSE}
+rbind('MARS' = marsPerformance, 'SVM' = svmPerformance, 'Neural Network' = nnetPerformance, 'KNN' = knnPerformance) %>%
+  kable() %>% kable_styling()
 ```
 
 
 
-**Does MARS select the informative predictors (those named X1–X5)**?
+#### Does MARS select the informative predictors (those named X1–X5)?
 
 
 \ 

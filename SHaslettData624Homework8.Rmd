@@ -19,6 +19,8 @@ library(tsibble)
 library(lubridate)
 library(ggplot2)
 library(AppliedPredictiveModeling)
+library(earth)
+library(kernlab)
 ```
 
 ### Exercise 7.2
@@ -47,7 +49,7 @@ testData$x <- data.frame(testData$x)
 ```
 
 
-**(a) Tune several models on these data. For example:**:
+#### (a) Tune several models on these data. For example:
 
 ```{r 7.2AExample1, eval=TRUE, message=FALSE, warning=FALSE}
 knnModel <- train(x = trainingData$x,
@@ -67,7 +69,82 @@ postResample(pred = knnPred, obs = testData$y)
 ```
 
 
-**Which models appear to give the best performance**?
+#### Which models appear to give the best performance?
+
+**Model 1: MARS Model**
+
+```{r 7.2MARSModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(100)
+# Define and tune the MARS model.
+marsGrid <- expand.grid(.degree = 1:2, .nprune = 2:20)
+marsModel <- train(x = trainingData$x,
+                   y = trainingData$y,
+                   method = 'earth',
+                   tuneGrid = marsGrid,
+                   preProc = c('center', 'scale'))
+
+marsModel
+```
+
+
+
+```{r 7.2MARSModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
+# Run predict() and postResample() on the model.
+marsPred <- predict(marsModel, newdata = testData$x)
+postResample(pred = marsPred, obs = testData$y)
+```
+
+
+**Model 2: SVM Model**
+
+```{r 7.2SVMModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(100)
+# Define and tune the SVM model.
+svmModel <- train(x = trainingData$x,
+                  y = trainingData$y,
+                  method = 'svmRadial',
+                  preProc = c('center', 'scale'),
+                  tuneLength = 14,
+                  trControl = trainControl(method = 'cv'))
+
+svmModel
+```
+
+
+```{r 7.2SVMModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
+# Run predict() and postResample().
+svmPred <- predict(svmModel, newdata = testData$x)
+postResample(pred = svmPred, obs = testData$y)
+```
+
+
+**Model 3: Neural Network Model**
+
+```{r 7.2NNetModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(100)
+# Define and tune the Neural Network model.
+nnetGrid <- expand.grid(.decay = c(0, 0.01, .1), .size = c(1:10), .bag = FALSE)
+nnetModel <- train(x = trainingData$x,
+                   y = trainingData$y,
+                   method = 'avNNet',
+                   preProc = c('center', 'scale'),
+                   tuneGrid = nnetGrid,
+                   trControl = trainControl(method = 'cv'),
+                   linout = TRUE,
+                   trace = FALSE,
+                   MaxNWts = 10 * (ncol(trainingData$x) + 1) + 10 + 1,
+                   maxit = 500)
+
+nnetModel
+```
+
+
+```{r 7.2NNetModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
+# Run predict() and postResample().
+nnetPred <- predict(nnetModel, newdata = testData$x)
+postResample(pred = nnetPred, obs = testData$y)
+```
+
 
 
 **Does MARS select the informative predictors (those named X1–X5)**?

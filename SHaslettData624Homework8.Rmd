@@ -160,6 +160,9 @@ rbind('MARS' = marsPerformance, 'SVM' = svmPerformance, 'Neural Network' = nnetP
 
 #### Does MARS select the informative predictors (those named X1–X5)?
 
+```{r 7.2informativePredictors, eval=TRUE, message=FALSE, warning=FALSE}
+varImp(marsModel)
+```
 
 \ 
 

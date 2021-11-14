@@ -234,29 +234,30 @@ knnPerformance
 ```
 
 
-##### Model 2: MARS Model
+##### Model 2: PLS Model
 
-```{r 7.5MARSModel, eval=TRUE, message=FALSE, warning=FALSE}
+```{r 7.5PLSModel, eval=TRUE, message=FALSE, warning=FALSE}
 set.seed(50)
-# Define and tune the MARS model.
-marsGrid <- expand.grid(.degree = 1:2, .nprune = 2:15)
-marsModel <- train(x = xTrainData,
-                   y = yTrainData,
-                   method = 'earth',
-                   tuneGrid = marsGrid,
-                   tuneLength = 25,
-                   preProc = c('center', 'scale'))
 
-marsModel
+# Define and tune a PLS model.
+plsModel <- train(x = xTrainData,
+                  y = yTrainData,
+                  method = 'pls',
+                  metric = 'Rsquared',
+                  tuneLength = 20,
+                  trControl = trainControl(method = 'cv'),
+                  preProcess = c('center', 'scale'))
+
+# Print out the results.
+plsModel
 ```
 
 
-
-```{r 7.5MARSModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
+```{r 7.5PLSModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
 # Run predict() and postResample() on the model.
-marsPred <- predict(marsModel, newdata = xTestData)
-marsPerformance <- postResample(pred = marsPred, obs = yTestData)
-marsPerformance
+plsPred <- predict(plsModel, newdata = xTestData)
+plsPerformance <- postResample(pred = plsPred, obs = yTestData)
+plsPerformance
 ```
 
 
@@ -313,14 +314,13 @@ nnetPerformance
 ```
 
 
-
-
 **(a) Which nonlinear regression model gives the optimal resampling and test set performance?**
 
 ```{r 7.5ModelPerforamnceComparison, eval=TRUE, message=FALSE, warning=FALSE}
-rbind('MARS' = marsPerformance, 'SVM' = svmPerformance, 'Neural Network' = nnetPerformance, 'KNN' = knnPerformance) %>%
+rbind('PLS' = plsPerformance, 'SVM' = svmPerformance, 'Neural Network' = nnetPerformance, 'KNN' = knnPerformance) %>%
   kable() %>% kable_styling()
 ```
+
 
 
 

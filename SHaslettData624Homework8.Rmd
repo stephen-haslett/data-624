@@ -321,15 +321,20 @@ rbind('PLS' = plsPerformance, 'SVM' = svmPerformance, 'Neural Network' = nnetPer
   kable() %>% kable_styling()
 ```
 
+**Answer:**
 
+Based on the lowest **RMSE** value, the **SVM** model gives the optimal resampling and test set performance.
 
 
 **(b) Which predictors are most important in the optimal nonlinear regression model? Do either the biological or process variables dominate the list? How do the top ten important predictors compare to the top ten predictors from the optimal linear model?**
 
 ```{r 7.5B, eval=TRUE, message=FALSE, warning=FALSE}
-
+varImp(svmModel)
 ```
 
+**Answer:**
+
+The **ManufacturingProcess** variables are the most important predictors in the SVM model (_the optimal nonlinear regression model_). 
 
 **(c) Explore the relationships between the top predictors and the response for the predictors that are unique to the optimal nonlinear regression model. Do these plots reveal intuition about the biological or process predictors and their relationship with yield**?
 

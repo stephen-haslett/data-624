@@ -64,7 +64,7 @@ knnModel
 ```{r 7.2AExample2, eval=TRUE, message=FALSE, warning=FALSE}
 knnPred <- predict(knnModel, newdata = testData$x)
 ## The function 'postResample' can be used to get the test set
-## perforamnce values
+## performance values.
 knnPerformance <- postResample(pred = knnPred, obs = testData$y)
 knnPerformance
 ```
@@ -75,7 +75,7 @@ knnPerformance
 **Model 1: MARS Model**
 
 ```{r 7.2MARSModel, eval=TRUE, message=FALSE, warning=FALSE}
-set.seed(100)
+set.seed(50)
 # Define and tune the MARS model.
 marsGrid <- expand.grid(.degree = 1:2, .nprune = 2:20)
 marsModel <- train(x = trainingData$x,
@@ -100,7 +100,7 @@ marsPerformance
 **Model 2: SVM Model**
 
 ```{r 7.2SVMModel, eval=TRUE, message=FALSE, warning=FALSE}
-set.seed(100)
+set.seed(50)
 # Define and tune the SVM model.
 svmModel <- train(x = trainingData$x,
                   y = trainingData$y,
@@ -124,7 +124,7 @@ svmPerformance
 **Model 3: Neural Network Model**
 
 ```{r 7.2NNetModel, eval=TRUE, message=FALSE, warning=FALSE}
-set.seed(100)
+set.seed(50)
 # Define and tune the Neural Network model.
 nnetGrid <- expand.grid(.decay = c(0, 0.01, .1), .size = c(1:10), .bag = FALSE)
 nnetModel <- train(x = trainingData$x,
@@ -172,7 +172,64 @@ varImp(marsModel)
 Exercise 6.3 describes data for a chemical manufacturing process. Use the same data imputation, data splitting, and pre-processing steps as before and train several nonlinear regression models.
 
 ```{r 7.5, eval=TRUE, message=FALSE, warning=FALSE}
+# Load the chemicalManufacturingProcess dataset that is provided by the "AppliedPredictiveModeling" package.
+data(ChemicalManufacturingProcess)
+```
 
+
+#### Use The Same Data Imputation, Data Splitting, and Pre-Processing Steps as Before In Exercise 6.3.
+
+**1. Impute missing values using KNN.**
+```{r 7.5Impute, eval=TRUE, message=FALSE, warning=FALSE}
+# Impute the missing values using KNN.
+cmpImputed <- preProcess(ChemicalManufacturingProcess, 'knnImpute')
+```
+
+
+**2. Predict after imputation.** 
+```{r 7.5Predict, eval=TRUE, message=FALSE, warning=FALSE}
+# Predict after imputation.
+chemicalMPData <- predict(cmpImputed, ChemicalManufacturingProcess)
+```
+
+
+**3. Split the data into training and test sets.**
+```{r 7.5SplitData, eval=TRUE, message=FALSE, warning=FALSE}
+# Split the training data using an 80% training data split.
+trainingData <- createDataPartition(ChemicalManufacturingProcess$Yield, p = 0.8, list = FALSE)
+xTrainData <- chemicalMPData[trainingData, ]
+yTrainData <- ChemicalManufacturingProcess$Yield[trainingData]
+
+# Split the test data.
+xTestData <- chemicalMPData[-trainingData, ]
+yTestData <- ChemicalManufacturingProcess$Yield[-trainingData]
+```
+
+\ 
+
+#### Train Several Nonlinear Regression Models
+
+##### Model 1: KNN Model
+
+```{r 7.5KNN, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(50)
+
+# Train a KNN model.
+knnModel <- train(x = xTrainData,
+                  y = yTrainData,
+                  method = 'knn',
+                  preProc = c('center', 'scale'),
+                  tuneLength = 10)
+knnModel
+```
+
+
+
+```{r 7.25KNNPredict, eval=TRUE, message=FALSE, warning=FALSE}
+# Run predict() and postResample().
+knnPred <- predict(knnModel, newdata = xTestData)
+knnPerformance <- postResample(pred = knnPred, obs = yTestData)
+knnPerformance
 ```
 
 

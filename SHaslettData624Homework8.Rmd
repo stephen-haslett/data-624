@@ -206,6 +206,34 @@ xTestData <- chemicalMPData[-trainingData, ]
 yTestData <- ChemicalManufacturingProcess$Yield[-trainingData]
 ```
 
+
+##### Non Linear PLS Model
+
+```{r 7.5PLSModel, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(50)
+
+# Define and tune a PLS model.
+plsModel <- train(x = xTrainData,
+                  y = yTrainData,
+                  method = 'pls',
+                  metric = 'Rsquared',
+                  tuneLength = 20,
+                  trControl = trainControl(method = 'cv'),
+                  preProcess = c('center', 'scale'))
+
+# Print out the results.
+plsModel
+```
+
+
+```{r 7.5PLSModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
+# Run predict() and postResample() on the model.
+plsPred <- predict(plsModel, newdata = xTestData)
+plsPerformance <- postResample(pred = plsPred, obs = yTestData)
+plsPerformance
+```
+
+
 \ 
 
 #### Train Several Nonlinear Regression Models
@@ -234,34 +262,7 @@ knnPerformance
 ```
 
 
-##### Model 2: PLS Model
-
-```{r 7.5PLSModel, eval=TRUE, message=FALSE, warning=FALSE}
-set.seed(50)
-
-# Define and tune a PLS model.
-plsModel <- train(x = xTrainData,
-                  y = yTrainData,
-                  method = 'pls',
-                  metric = 'Rsquared',
-                  tuneLength = 20,
-                  trControl = trainControl(method = 'cv'),
-                  preProcess = c('center', 'scale'))
-
-# Print out the results.
-plsModel
-```
-
-
-```{r 7.5PLSModelPredict, eval=TRUE, message=FALSE, warning=FALSE}
-# Run predict() and postResample() on the model.
-plsPred <- predict(plsModel, newdata = xTestData)
-plsPerformance <- postResample(pred = plsPred, obs = yTestData)
-plsPerformance
-```
-
-
-##### Model 3: SVM Model
+##### Model 2: SVM Model
 
 ```{r 7.5SVMModel, eval=TRUE, message=FALSE, warning=FALSE}
 set.seed(50)
@@ -285,7 +286,7 @@ svmPerformance
 ```
 
 
-##### Model 4: Neural Network Model
+##### Model 3: Neural Network Model
 
 ```{r 7.5NNetModel, eval=TRUE, message=FALSE, warning=FALSE}
 set.seed(50)
@@ -317,30 +318,54 @@ nnetPerformance
 **(a) Which nonlinear regression model gives the optimal resampling and test set performance?**
 
 ```{r 7.5ModelPerforamnceComparison, eval=TRUE, message=FALSE, warning=FALSE}
-rbind('PLS' = plsPerformance, 'SVM' = svmPerformance, 'Neural Network' = nnetPerformance, 'KNN' = knnPerformance) %>%
+rbind('PLS (Linear Model)' = plsPerformance, 'SVM' = svmPerformance, 'Neural Network' = nnetPerformance, 'KNN' = knnPerformance) %>%
   kable() %>% kable_styling()
 ```
 
+
+
 **Answer:**
 
-Based on the lowest **RMSE** value, the **SVM** model gives the optimal resampling and test set performance.
+Based on the lowest **RMSE** value and the highest **R^2** value, the **SVM** model gives the optimal resampling and test set performance.
 
 
 **(b) Which predictors are most important in the optimal nonlinear regression model? Do either the biological or process variables dominate the list? How do the top ten important predictors compare to the top ten predictors from the optimal linear model?**
 
-```{r 7.5B, eval=TRUE, message=FALSE, warning=FALSE}
-varImp(svmModel)
+```{r 7.5BSVMPredictors, eval=TRUE, message=FALSE, warning=FALSE}
+svmImportantPredictors <- varImp(svmModel)
+svmImportantPredictors
 ```
 
 **Answer:**
 
-The **ManufacturingProcess** variables are the most important predictors in the SVM model (_the optimal nonlinear regression model_). 
+**B1 Which predictors are most important in the optimal nonlinear regression model? Do either the biological or process variables dominate the list?**
+
+The most important predictors for the optimal nonlinear regression model (_the SVM model_) are shown above. The **ManufacturingProcess** predictors dominate the list.  
+
+**B2 How do the top ten important predictors compare to the top ten predictors from the optimal linear model?**
+
+```{r 7.5BPLSPredictors, eval=TRUE, message=FALSE, warning=FALSE}
+varImp(plsModel)
+```
+
+
+The top 10 predictors of the optimal nonlinear regression model are very similiar to the top 10 predictors of the linear model (_PLS model_), **ManufacturingProcess** predictors dominate the list.
 
 **(c) Explore the relationships between the top predictors and the response for the predictors that are unique to the optimal nonlinear regression model. Do these plots reveal intuition about the biological or process predictors and their relationship with yield**?
 
 ```{r 7.5C, eval=TRUE, message=FALSE, warning=FALSE}
+Yield <- which(colnames(chemicalMPData) == 'Yield')
+SVMTopTenPredictors <- head(rownames(svmImportantPredictors$importance)[order(-svmImportantPredictors$importance$Overall)], 10)
+as.data.frame(SVMTopTenPredictors)
 
+Y <- chemicalMPData[,Yield]
+X <- chemicalMPData[,SVMTopTenPredictors]
+
+colnames(X) <- gsub('(Process|Material)', '', colnames(X))
+
+featurePlot(x = X, y = Y, plot = 'scatter', type = c('p', 'smooth'), span = 0.5)
 ```
 
+The above plots show us that there is a relationship between the response variable (_Yield_), and the top 10 predictor variables. Most of the predictor variables have a linear relationship with the response variable. For example, there is a clear positive linear relationship between Yield and Biological03, whilst Manufacturing17 appears to have a negative relationship.   
 
 \ 

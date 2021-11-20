@@ -22,6 +22,14 @@ library(AppliedPredictiveModeling)
 library(earth)
 library(kernlab)
 library(randomForest)
+library(Cubist)
+library(gbm)
+library(ipred)
+library(party)
+library(partykit)
+library(rpart)
+library(RWeka)
+
 ```
 
 ### Exercise 8.1
@@ -45,10 +53,18 @@ model1 <- randomForest(y ~ ., data = simulated,
                        importance = TRUE,
                        ntree = 1000)
 rfImp1 <- varImp(model1, scale = FALSE)
+
+# Print out the variable importance scores.
+rfImp1
 ```
 
-Did the random forest model significantly use the uninformative predictors (V6 – V10)?
+**Did the random forest model significantly use the uninformative predictors (V6 – V10)**?
 
+**Answer:**
+
+_From the above variable importance table we can see that the model significantly utilized variables **V1** through **V5**. Whilst present, Variables **V6** through **V10** were not significantly utilized by the model. This is apparent by their low importance scores **0.17436781 - -0.08529218**_.
+
+\ 
 
 #### (b) Now add an additional predictor that is highly correlated with one of the informative predictors. For example:
 
@@ -57,8 +73,48 @@ simulated$duplicate1 <- simulated$V1 + rnorm(200) * .1
 cor(simulated$duplicate1, simulated$V1)
 ```
 
-Fit another random forest model to these data. Did the importance score for **V1** change? What happens when you add another predictor that is also highly correlated with **V1**?
+**Fit another random forest model to these data. Did the importance score for _V1_ change? What happens when you add another predictor that is also highly correlated with _V1_**?
 
+```{r 8.1BRandomForest, eval=TRUE, message=FALSE, warning=FALSE}
+model2 <- randomForest(y ~ ., data = simulated,
+                       importance = TRUE,
+                       ntree = 1000)
+rfImp2 <- varImp(model2, scale = FALSE)
+
+# Print out the variable importance scores.
+rfImp2
+```
+
+
+**Answer:**
+
+_After adding an additional highly correlated predictor, the importance of variable **V1** dropped significantly - from **8.83890885**, to **6.29780744**_. 
+
+
+**What happens when you add another predictor that is also highly correlated with _V1_**?
+
+```{r 8.1BRandomForestModel3, eval=TRUE, message=FALSE, warning=FALSE}
+# Add an additional highly correlated variable.
+simulated$duplicate2 <- simulated$V1 + rnorm(200) * .1
+cor(simulated$duplicate2, simulated$V1)
+
+# Fit an additional random forest model. 
+model3 <- randomForest(y ~ ., data = simulated,
+                       importance = TRUE,
+                       ntree = 1000)
+
+rfImp3 <- varImp(model3, scale = FALSE)
+
+# Print out the variable importance scores.
+rfImp3
+```
+
+
+**Answer:**
+
+_Adding an additional highly correlated variable further reduces the importance of **V1**, but not as dramatically as the reduction after the addition of the previous highly correlated variable_.   
+
+\ 
 
 #### (c) Use the **cforest** function in the party package to fit a random forest model using conditional inference trees. The party package function **varimp** can calculate predictor importance. The **conditional** argument of that function toggles between the traditional importance measure and the modified version described in _Strobl et al. (2007)_. Do these importances show the same pattern as the traditional random forest model?
 

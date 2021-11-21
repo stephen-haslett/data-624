@@ -28,8 +28,10 @@ library(ipred)
 library(party)
 library(partykit)
 library(rpart)
+library(rpart.plot)
 library(RWeka)
-
+library(RColorBrewer)
+library(rattle)
 ```
 
 ### Exercise 8.1
@@ -118,9 +120,62 @@ _Adding an additional highly correlated variable further reduces the importance 
 
 #### (c) Use the **cforest** function in the party package to fit a random forest model using conditional inference trees. The party package function **varimp** can calculate predictor importance. The **conditional** argument of that function toggles between the traditional importance measure and the modified version described in _Strobl et al. (2007)_. Do these importances show the same pattern as the traditional random forest model?
 
+_**Traditional Importance Measure**_
+
+```{r 8.1C, eval=TRUE, message=FALSE, warning=FALSE}
+# Fit a random forest model using conditional inference trees.
+cforest_model <- cforest(y ~ ., simulated)
+
+# Print out the variable importance scores without conditional argument.
+cforestImp3 <- varimp(cforest_model)
+cforestImp3
+```
+
+
+_**Conditional Importance Measure**_
+
+```{r 8.1CConditional, eval=TRUE, message=FALSE, warning=FALSE}
+# Print out the variable importance scores using conditional argument.
+cforestImp3Conditional <- varimp(cforest_model, conditional = TRUE)
+cforestImp3Conditional
+```
+
+
+**Answer:**
+
+_The conditional importance measure dramatically decreases the importance of all the variables in the model when compared to the traditional measure_. 
+
 \ 
 
 #### (d) Repeat this process with different tree models, such as boosted trees and Cubist. Does the same pattern occur?
+
+_**Generalized Boosted Model**_
+
+```{r 8.1DBoosted, eval=TRUE, message=FALSE, warning=FALSE}
+# Fit a Generalized Boosted model.
+grid = expand.grid(.interaction.depth = seq(1, 7, by = 2), 
+                   .n.trees = seq(100, 1000, by = 50), 
+                   .shrinkage = c(0.01, 0.1),
+                   .n.minobsinnode = 5)
+
+gbmModel = train(y ~ ., data = simulated, method = 'gbm', tuneGrid = grid, verbose = FALSE)
+
+# Print out the variable importance scores.
+gbmImp <- varImp(gbmModel)
+gbmImp
+```
+
+
+_**Cubist Model**_
+
+```{r 8.1DCubist, eval=TRUE, message=FALSE, warning=FALSE}
+# Fit a Cubist model using the cubist() function.
+cubistModel <- cubist(simulated[,-11], simulated[, 11])
+
+# Print out the variable importance scores.
+cubistImp<-varImp(cubistModel)
+cubistImp
+```
 
 ![](./images/PartDImage.png)
 
@@ -131,7 +186,19 @@ Fig. 8.24: _A comparison of variable importance magnitudes for differing values 
 
 Use a simulation to show tree bias with different granularities.
 
+```{r 8.2, eval=TRUE, message=FALSE, warning=FALSE}
+# Simulate the data using the twoClassSim() function.
+simulation <- twoClassSim(200, noiseVars = 6, corrVar = 4, corrValue = 0.8) %>%
+              mutate(TwoFactor1 = as.factor(round(TwoFactor1, 0)),
+                     TwoFactor2 = as.factor(round(TwoFactor2, 0)))
 
+# Create the tree and plot the data.
+simulationTree <- rpart(Linear01 ~ ., simulation)
+fancyRpartPlot(simulationTree, caption = NULL)
+
+# Print out the variable importance scores.
+varImp(simulationTree)
+```
 
 ### Exercise 8.3
 

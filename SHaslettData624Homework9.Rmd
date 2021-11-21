@@ -207,21 +207,104 @@ In stochastic gradient boosting the bagging fraction and learning rate will gove
 
 #### (a) Why does the model on the right focus its importance on just the first few of predictors, whereas the model on the left spreads importance across more predictors?
 
+**Answer:**
+
+_The model on the right has a higher learning and bagging rate, which means that a larger percentage of the data is used. Additionally, this results in a larger portion of the current predicted value being added to the previous iterations predicted value. According to the text, "**The importance profile for boosting has a much steeper importance slope than the one for random forests. This is due to the fact that the trees from boosting are dependent on each other and hence will have correlated structures as the method follows by the gradient. Therefore many of the same predictors will be selected across the trees, increasing their contribution to the importance metric**"_. 
 
 #### (b) Which model do you think would be more predictive of other samples?
 
+**Answer:**
+
+_Smaller learning and bagging rates will lead to less variance for new samples so I believe the model on the left would be more predictive of other samples_.
 
 #### (C) How would increasing interaction depth affect the slope of predictor importance for either model in Fig. 8.24?
 
+**Answer:**
 
+_Increasing interaction depth would result in the slope of predictor importance becoming steeper due to the spreading out of importance predictors_.
 
 ### Exercise 8.7
 
 Refer to Exercises 6.3 and 7.5 which describe a chemical manufacturing process. Use the same data imputation, data splitting, and pre-processing steps as before and train several tree-based models:
 
+```{r 8.7, eval=TRUE, message=FALSE, warning=FALSE}
+data(ChemicalManufacturingProcess)
+
+# Impute the missing values using KNN.
+cmpImputed <- preProcess(ChemicalManufacturingProcess, 'knnImpute')
+
+# Split the training data using an 80% training data split.
+trainingData <- createDataPartition(ChemicalManufacturingProcess$Yield, p = 0.8, list = FALSE)
+xTrainData <- chemicalMPData[trainingData, ]
+yTrainData <- ChemicalManufacturingProcess$Yield[trainingData]
+
+# Split the test data.
+xTestData <- chemicalMPData[-trainingData, ]
+yTestData <- ChemicalManufacturingProcess$Yield[-trainingData]
+```
+
+**Single Tree Model**
+
+```{r 8.7singleTree, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
+# Define the R Part Single Tree model.
+rPartSingleTree <- train(x = xTrainData,
+                         y = yTrainData,
+                         method = 'rpart',
+                         tuneLength = 10,
+                         trControl = trainControl(method = 'cv'))
+
+# Run predict() and postResample() on the model.
+rPartSingleTreePred <- predict(rPartSingleTree, newdata = xTestData)
+rPartSingleTreePerformance <- postResample(pred = rPartSingleTreePred, obs = yTestData)
+rPartSingleTreePerformance
+```
+
+
+**Random Forest Model**
+
+```{r 8.7singleTree, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
+# Define the Random Forest model.
+randomForest <- train(x = xTrainData,
+                      y = yTrainData,
+                      method = 'rf',
+                      tuneLength = 10,
+                      trControl = trainControl(method = 'cv'))
+
+# Run predict() and postResample() on the model.
+randomForestPred <- predict(randomForest, newdata = xTestData)
+randomForestPerformance <- postResample(pred = randomForestPred, obs = yTestData)
+randomForestPerformance
+```
+
+
+**Cubist Model**
+
+```{r 8.7cubist, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
+# Define the Cubist model.
+grid <- expand.grid(committees = c(1, 5, 10, 20, 50, 70), neighbors = c(0, 1, 3, 5, 7, 9))
+cubistModel <- train(x = xTrainData,
+                     y = yTrainData,
+                     method = 'cubist',
+                     tuneGrid = grid,
+                     trControl = trainControl(method = 'cv'))
+
+# Run predict() and postResample() on the model.
+cubistModelPred <- predict(cubistModel, newdata = xTestData)
+cubistModelPerformance <- postResample(pred = cubistModelPred, obs = yTestData)
+cubistModelPerformance
+```
 
 #### (a) Which tree-based regression model gives the optimal resampling and test set performance?
 
+```{r 7.5ModelPerforamnceComparison, eval=TRUE, message=FALSE, warning=FALSE}
+rbind('Single Tree Model' = rPartSingleTreePerformance,
+      'Random Forest Model' = randomForestPerformance,
+      'Cubist Model' =cubistModelPerformance) %>%
+kable() %>% kable_styling()
+```
 
 #### (b) Which predictors are most important in the optimal tree-based regression model? Do either the biological or process variables dominate the list? How do the top 10 important predictors compare to the top 10 predictors from the optimal linear and nonlinear models?
 

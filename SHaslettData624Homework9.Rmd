@@ -32,6 +32,7 @@ library(rpart.plot)
 library(RWeka)
 library(RColorBrewer)
 library(rattle)
+library(vip)
 ```
 
 ### Exercise 8.1
@@ -51,6 +52,7 @@ colnames(simulated)[ncol(simulated)] <- "y"
 
 
 ```{r 8.1A, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 model1 <- randomForest(y ~ ., data = simulated,
                        importance = TRUE,
                        ntree = 1000)
@@ -78,6 +80,7 @@ cor(simulated$duplicate1, simulated$V1)
 **Fit another random forest model to these data. Did the importance score for _V1_ change? What happens when you add another predictor that is also highly correlated with _V1_**?
 
 ```{r 8.1BRandomForest, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 model2 <- randomForest(y ~ ., data = simulated,
                        importance = TRUE,
                        ntree = 1000)
@@ -96,6 +99,7 @@ _After adding an additional highly correlated predictor, the importance of varia
 **What happens when you add another predictor that is also highly correlated with _V1_**?
 
 ```{r 8.1BRandomForestModel3, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 # Add an additional highly correlated variable.
 simulated$duplicate2 <- simulated$V1 + rnorm(200) * .1
 cor(simulated$duplicate2, simulated$V1)
@@ -123,6 +127,7 @@ _Adding an additional highly correlated variable further reduces the importance 
 _**Traditional Importance Measure**_
 
 ```{r 8.1C, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 # Fit a random forest model using conditional inference trees.
 cforest_model <- cforest(y ~ ., simulated)
 
@@ -152,6 +157,7 @@ _The conditional importance measure dramatically decreases the importance of all
 _**Generalized Boosted Model**_
 
 ```{r 8.1DBoosted, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 # Fit a Generalized Boosted model.
 grid = expand.grid(.interaction.depth = seq(1, 7, by = 2), 
                    .n.trees = seq(100, 1000, by = 50), 
@@ -169,6 +175,7 @@ gbmImp
 _**Cubist Model**_
 
 ```{r 8.1DCubist, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 # Fit a Cubist model using the cubist() function.
 cubistModel <- cubist(simulated[,-11], simulated[, 11])
 
@@ -187,6 +194,7 @@ Fig. 8.24: _A comparison of variable importance magnitudes for differing values 
 Use a simulation to show tree bias with different granularities.
 
 ```{r 8.2, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 # Simulate the data using the twoClassSim() function.
 simulation <- twoClassSim(200, noiseVars = 6, corrVar = 4, corrValue = 0.8) %>%
               mutate(TwoFactor1 = as.factor(round(TwoFactor1, 0)),
@@ -228,10 +236,14 @@ _Increasing interaction depth would result in the slope of predictor importance 
 Refer to Exercises 6.3 and 7.5 which describe a chemical manufacturing process. Use the same data imputation, data splitting, and pre-processing steps as before and train several tree-based models:
 
 ```{r 8.7, eval=TRUE, message=FALSE, warning=FALSE}
+set.seed(10)
 data(ChemicalManufacturingProcess)
 
 # Impute the missing values using KNN.
 cmpImputed <- preProcess(ChemicalManufacturingProcess, 'knnImpute')
+
+# Predict after imputation.
+chemicalMPData <- predict(cmpImputed, ChemicalManufacturingProcess)
 
 # Split the training data using an 80% training data split.
 trainingData <- createDataPartition(ChemicalManufacturingProcess$Yield, p = 0.8, list = FALSE)
@@ -242,6 +254,8 @@ yTrainData <- ChemicalManufacturingProcess$Yield[trainingData]
 xTestData <- chemicalMPData[-trainingData, ]
 yTestData <- ChemicalManufacturingProcess$Yield[-trainingData]
 ```
+
+\ 
 
 **Single Tree Model**
 
@@ -260,16 +274,18 @@ rPartSingleTreePerformance <- postResample(pred = rPartSingleTreePred, obs = yTe
 rPartSingleTreePerformance
 ```
 
+\ 
 
 **Random Forest Model**
 
-```{r 8.7singleTree, eval=TRUE, message=FALSE, warning=FALSE}
+```{r 8.7randomForest, eval=TRUE, message=FALSE, warning=FALSE}
 set.seed(10)
 # Define the Random Forest model.
 randomForest <- train(x = xTrainData,
                       y = yTrainData,
                       method = 'rf',
                       tuneLength = 10,
+                      importance = TRUE,
                       trControl = trainControl(method = 'cv'))
 
 # Run predict() and postResample() on the model.
@@ -278,36 +294,85 @@ randomForestPerformance <- postResample(pred = randomForestPred, obs = yTestData
 randomForestPerformance
 ```
 
+\ 
 
-**Cubist Model**
+**GBM Model**
 
-```{r 8.7cubist, eval=TRUE, message=FALSE, warning=FALSE}
+```{r 8.7GBM, eval=TRUE, message=FALSE, warning=FALSE}
 set.seed(10)
-# Define the Cubist model.
-grid <- expand.grid(committees = c(1, 5, 10, 20, 50, 70), neighbors = c(0, 1, 3, 5, 7, 9))
-cubistModel <- train(x = xTrainData,
-                     y = yTrainData,
-                     method = 'cubist',
-                     tuneGrid = grid,
-                     trControl = trainControl(method = 'cv'))
+
+# Define the GBM model.
+grid <- expand.grid(interaction.depth = seq(1, 6, by = 1),
+                    n.trees = c(25, 50, 100, 200),
+                    shrinkage = c(0.01, 0.05, 0.1, 0.2),
+                    n.minobsinnode = c(5, 10, 15))
+
+gbmModel <- train(x = xTrainData,
+                  y = yTrainData,
+                  method = 'gbm',
+                  tuneGrid = grid,
+                  trControl = trainControl(method = 'cv'),
+                  verbose = FALSE)
 
 # Run predict() and postResample() on the model.
-cubistModelPred <- predict(cubistModel, newdata = xTestData)
-cubistModelPerformance <- postResample(pred = cubistModelPred, obs = yTestData)
-cubistModelPerformance
+gbmModelPred <- predict(gbmModel, newdata = xTestData)
+gbmModelPerformance <- postResample(pred = gbmModelPred, obs = yTestData)
+gbmModelPerformance
 ```
+
+\ 
 
 #### (a) Which tree-based regression model gives the optimal resampling and test set performance?
 
 ```{r 7.5ModelPerforamnceComparison, eval=TRUE, message=FALSE, warning=FALSE}
 rbind('Single Tree Model' = rPartSingleTreePerformance,
       'Random Forest Model' = randomForestPerformance,
-      'Cubist Model' =cubistModelPerformance) %>%
+      'GBM Model' = gbmModelPerformance) %>%
 kable() %>% kable_styling()
 ```
 
+**Answer:**
+
+Based on the lowest **RMSE** value and the highest **Rsquared** value, the **Random Forest** model gives the optimal resampling and test set performance.
+
+\ 
+
 #### (b) Which predictors are most important in the optimal tree-based regression model? Do either the biological or process variables dominate the list? How do the top 10 important predictors compare to the top 10 predictors from the optimal linear and nonlinear models?
 
+**Which predictors are most important in the optimal tree-based regression model? Do either the biological or process variables dominate the list?**
+
+```{r 7.5B, eval=TRUE, message=FALSE, warning=FALSE}
+varImp(randomForest)
+vip(randomForest, aesthetics = list(color = 'red', fill='green'))
+```
+
+
+**Answer:**
+
+_The most important predictors in the optimal tree-based regression model (_Random Forest_) are shown above. As we can see, the process variables dominate the list_.
+
+
+**How do the top 10 important predictors compare to the top 10 predictors from the optimal linear and nonlinear models?**
+
+```{r 7.5BOtherModels, eval=TRUE, message=FALSE, warning=FALSE}
+# Define and tune the SVM model.
+svmModel <- train(x = xTrainData,
+                  y = yTrainData,
+                  method = 'svmRadial',
+                  preProc = c('center', 'scale'),
+                  tuneLength = 14,
+                  trControl = trainControl(method = 'cv'))
+
+varImp(svmModel)
+vip(svmModel, aesthetics = list(color = 'red', fill='purple'))
+```
+
+
+**Answer:**
+
+_From the previous homework on linear and non linear models, the SVM model was found to be the optimal model. As we can see from the above, the process variables dominate the list the same way they do for the Random Forest model_.
+
+\ 
 
 #### (c) Plot the optimal single tree with the distribution of yield in the terminal nodes. Does this view of the data provide additional knowledge about the biological or process predictors and their relationship with yield?
 

@@ -171,6 +171,9 @@ gbmImp <- varImp(gbmModel)
 gbmImp
 ```
 
+**Answer:** 
+
+_It appears the same pattern occurs for the GBM model - the **V4** variable remains the most influential_.
 
 _**Cubist Model**_
 
@@ -183,6 +186,11 @@ cubistModel <- cubist(simulated[,-11], simulated[, 11])
 cubistImp<-varImp(cubistModel)
 cubistImp
 ```
+
+**Answer:** 
+
+_The same pattern does not seem to occur for the **Cubist** model. Variables **V1** through **V6** hold the same importance_.
+
 
 ![](./images/PartDImage.png)
 
@@ -333,7 +341,7 @@ kable() %>% kable_styling()
 
 **Answer:**
 
-Based on the lowest **RMSE** value and the highest **Rsquared** value, the **Random Forest** model gives the optimal resampling and test set performance.
+_Based on the lowest **RMSE** value and the highest **Rsquared** value, the **Random Forest** model gives the optimal resampling and test set performance_.
 
 \ 
 
@@ -384,4 +392,4 @@ fancyRpartPlot(rpartTree, caption = 'Distribution of Yield')
 
 **Answer:**
 
-The above tree diagram does provide additional knowledge about the biological or process predictors and their relationship with yield. The diagram shows us the importance of each of the variables. The higher up the tree, the more important the variable is. This helps us to determine which variables are influential in improving yield.
+_The above tree diagram does provide additional knowledge about the biological or process predictors and their relationship with yield. The diagram shows us the importance of each of the variables. The higher up the tree, the more important the variable is. This helps us to determine which variables are influential in improving yield_.

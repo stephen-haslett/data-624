@@ -376,3 +376,12 @@ _From the previous homework on linear and non linear models, the SVM model was f
 
 #### (c) Plot the optimal single tree with the distribution of yield in the terminal nodes. Does this view of the data provide additional knowledge about the biological or process predictors and their relationship with yield?
 
+
+```{r 7.5C, eval=TRUE, message=FALSE, warning=FALSE}
+rpartTree <- rpart(Yield ~., data = xTrainData)
+fancyRpartPlot(rpartTree, caption = 'Distribution of Yield')
+```
+
+**Answer:**
+
+The above tree diagram does provide additional knowledge about the biological or process predictors and their relationship with yield. The diagram shows us the importance of each of the variables. The higher up the tree, the more important the variable is. This helps us to determine which variables are influential in improving yield.

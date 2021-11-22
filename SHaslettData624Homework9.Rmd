@@ -66,7 +66,7 @@ rfImp1
 
 **Answer:**
 
-_From the above variable importance table we can see that the model significantly utilized variables **V1** through **V5**. Whilst present, Variables **V6** through **V10** were not significantly utilized by the model. This is apparent by their low importance scores **0.17436781 - -0.08529218**_.
+_From the above variable importance table we can see that the model significantly utilized variables **V1** through **V5**. Whilst present, Variables **V6** through **V10** were not significantly utilized by the model. This is apparent by their low importance scores_.
 
 \ 
 
@@ -93,7 +93,7 @@ rfImp2
 
 **Answer:**
 
-_After adding an additional highly correlated predictor, the importance of variable **V1** dropped significantly - from **8.83890885**, to **6.29780744**_. 
+_After adding an additional highly correlated predictor, the importance of variable **V1** dropped significantly_. 
 
 
 **What happens when you add another predictor that is also highly correlated with _V1_**?
@@ -191,6 +191,7 @@ cubistImp
 
 _The same pattern does not seem to occur for the **Cubist** model. Variables **V1** through **V6** hold the same importance_.
 
+\ 
 
 ![](./images/PartDImage.png)
 
